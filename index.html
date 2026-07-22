@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lector de Códigos y QR</title>
+    <!-- Importamos la librería html5-qrcode -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        #reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e2f0d9;
+            border: 1px solid #c5e0b4;
+            border-radius: 5px;
+            display: none;
+            word-break: break-all;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Escáner de QR y Código de Barras</h2>
+    <p>Usa tu celular o cámara web para escanear.</p>
+
+    <!-- Contenedor donde se mostrará la cámara -->
+    <div id="reader"></div>
+
+    <button id="startBtn" class="btn">Iniciar Cámara</button>
+    <button id="stopBtn" class="btn" disabled>Detener</button>
+
+    <div id="result">
+        <strong>Resultado:</strong> <span id="scannedText"></span>
+    </div>
+
+    <script>
+        let html5QrCode;
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resultDiv = document.getElementById('result');
+        const scannedText = document.getElementById('scannedText');
+
+        // Qué hacer cuando escanea algo con éxito
+        function onScanSuccess(decodedText, decodedResult) {
+            resultDiv.style.display = 'block';
+            scannedText.innerText = decodedText;
+            
+            // Si quieres que la cámara se apague apenas lea el código, 
+            // quita las diagonales de la siguiente línea:
+            // stopScanner(); 
+        }
+
+        // Qué hacer en caso de error (se ignora para no saturar la consola)
+        function onScanFailure(error) {
+            // El lector busca constantemente, así que tira errores internos 
+            // cuando no ve un código. Lo dejamos vacío.
+        }
+
+        function startScanner() {
+            html5QrCode = new Html5Qrcode("reader");
+            
+            // Configuración: 10 frames por segundo y un cuadro guía de 250x250
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            // facingMode: "environment" fuerza a usar la cámara trasera en celulares
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+                .then(() => {
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    resultDiv.style.display = 'none';
+                })
+                .catch((err) => {
+                    alert("Error al iniciar la cámara. Asegúrate de dar los permisos.");
+                    console.error(err);
+                });
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                }).catch((err) => {
+                    console.error("Error al detener la cámara", err);
+                });
+            }
+        }
+
+        // Conectar botones a las funciones
+        startBtn.addEventListener('click', startScanner);
+        stopBtn.addEventListener('click', stopScanner);
+    </script>
+</body>
+</html>
