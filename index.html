@@ -72,7 +72,13 @@
         // Qué hacer cuando escanea algo con éxito
         function onScanSuccess(decodedText, decodedResult) {
             resultDiv.style.display = 'block';
-            scannedText.innerText = decodedText;
+            
+            // Reemplaza cualquier carácter que no sea letra, número o vocal acentuada por un espacio.
+            // El '+' asegura que si hay varios símbolos juntos, se cambien por un solo espacio.
+            // .trim() elimina los espacios extra al principio y al final.
+            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
+            
+            scannedText.innerText = textoLimpio;
             
             // Si quieres que la cámara se apague apenas lea el código, 
             // quita las diagonales de la siguiente línea:
@@ -99,7 +105,7 @@
                     resultDiv.style.display = 'none';
                 })
                 .catch((err) => {
-                    alert("Error al iniciar la cámara. Asegúrate de dar los permisos.");
+                    alert("Error al iniciar la cámara. Asegúrate de dar los permisos o de estar usando HTTPS.");
                     console.error(err);
                 });
         }
