@@ -3,127 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lector de Códigos y QR</title>
-    <!-- Importamos la librería html5-qrcode -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>Lector de Códigos de Barras</title>
+    <!-- 1. Importar la librería -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
-            background-color: #f4f4f9;
         }
-        #reader {
+        #lector-barras {
             width: 100%;
             max-width: 500px;
-            margin: 0 auto;
+            margin: 0 auto 20px auto;
+            border: 2px solid #ccc;
             border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: none; /* Oculto hasta que se encienda la cámara */
         }
-        .btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
+        .controles button {
             padding: 10px 20px;
-            margin: 10px;
+            margin: 5px;
             font-size: 16px;
-            border-radius: 5px;
             cursor: pointer;
         }
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e2f0d9;
-            border: 1px solid #c5e0b4;
-            border-radius: 5px;
-            display: none;
-            word-break: break-all;
+        input[type="text"] {
+            padding: 10px;
             font-size: 18px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Escáner de QR y Código de Barras</h2>
-    <p>Usa tu celular o cámara web para escanear.</p>
+    <h2>Escáner de Código de Barras</h2>
+    
+    <!-- Contenedor del video de la cámara -->
+    <div id="lector-barras"></div>
 
-    <!-- Contenedor donde se mostrará la cámara -->
-    <div id="reader"></div>
+    <div class="controles">
+        <button onclick="iniciarEscaner()">📷 Iniciar Escáner</button>
+        <button onclick="detenerEscaner()">⏹ Detener</button>
+    </div>
 
-    <button id="startBtn" class="btn">Iniciar Cámara</button>
-    <button id="stopBtn" class="btn" disabled>Detener</button>
-
-    <div id="result">
-        <strong>Resultado:</strong> <span id="scannedText"></span>
+    <div>
+        <p>Código detectado:</p>
+        <input type="text" id="resultado" placeholder="Esperando código..." readonly>
     </div>
 
     <script>
-        let html5QrCode;
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const resultDiv = document.getElementById('result');
-        const scannedText = document.getElementById('scannedText');
+        let escaner;
 
-        // Qué hacer cuando escanea algo con éxito
-        function onScanSuccess(decodedText, decodedResult) {
-            resultDiv.style.display = 'block';
-            
-            // Reemplaza cualquier carácter que no sea letra, número o vocal acentuada por un espacio.
-            // El '+' asegura que si hay varios símbolos juntos, se cambien por un solo espacio.
-            // .trim() elimina los espacios extra al principio y al final.
-            let textoLimpio = decodedText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+/g, ' ').trim();
-            
-            scannedText.innerText = textoLimpio;
-            
-            // Si quieres que la cámara se apague apenas lea el código, 
-            // quita las diagonales de la siguiente línea:
-            // stopScanner(); 
+        function iniciarEscaner() {
+            const contenedor = document.getElementById('lector-barras');
+            contenedor.style.display = 'block';
+
+            if (!escaner) {
+                escaner = new Html5Qrcode("lector-barras");
+            }
+
+            // Configuración optimizada para códigos de barras
+            const config = { 
+                fps: 10, 
+                // Hacer el área de escaneo rectangular (más ancha que alta)
+                qrbox: { width: 300, height: 150 } 
+            };
+
+            escaner.start(
+                { facingMode: "environment" }, // Usa la cámara trasera en móviles
+                config,
+                (textoDecodificado) => {
+                    // Acción al leer con éxito
+                    document.getElementById('resultado').value = textoDecodificado;
+                    
+                    // Opcional: Detener la cámara tras la lectura exitosa
+                    detenerEscaner();
+                },
+                (mensajeError) => {
+                    // Errores de lectura por cada frame (se ignoran silenciosamente)
+                }
+            ).catch((err) => {
+                console.error("Error al iniciar la cámara:", err);
+                alert("No se pudo iniciar la cámara.");
+            });
         }
 
-        // Qué hacer en caso de error (se ignora para no saturar la consola)
-        function onScanFailure(error) {
-            // El lector busca constantemente, así que tira errores internos 
-            // cuando no ve un código. Lo dejamos vacío.
-        }
-
-        function startScanner() {
-            html5QrCode = new Html5Qrcode("reader");
-            
-            // Configuración: 10 frames por segundo y un cuadro guía de 250x250
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-            // facingMode: "environment" fuerza a usar la cámara trasera en celulares
-            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
-                .then(() => {
-                    startBtn.disabled = true;
-                    stopBtn.disabled = false;
-                    resultDiv.style.display = 'none';
-                })
-                .catch((err) => {
-                    alert("Error al iniciar la cámara. Asegúrate de dar los permisos o de estar usando HTTPS.");
-                    console.error(err);
-                });
-        }
-
-        function stopScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    startBtn.disabled = false;
-                    stopBtn.disabled = true;
+        function detenerEscaner() {
+            if (escaner && escaner.isScanning) {
+                escaner.stop().then(() => {
+                    document.getElementById('lector-barras').style.display = 'none';
                 }).catch((err) => {
-                    console.error("Error al detener la cámara", err);
+                    console.error("Error al detener:", err);
                 });
             }
         }
-
-        // Conectar botones a las funciones
-        startBtn.addEventListener('click', startScanner);
-        stopBtn.addEventListener('click', stopScanner);
     </script>
 </body>
 </html>
