@@ -300,7 +300,9 @@
                 { facingMode: "environment" },
                 config,
                 (textoDecodificado) => {
-                    document.getElementById('valorBusqueda').value = textoDecodificado;
+                    // Extraemos unicamente los primeros 18 dígitos/caracteres
+                    const primeros18 = textoDecodificado.substring(0, 18);
+                    document.getElementById('valorBusqueda').value = primeros18;
                     detenerEscaner();
                 },
                 (mensajeError) => {
