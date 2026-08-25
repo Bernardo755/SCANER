@@ -167,7 +167,6 @@
                     <input type="radio" name="tipo_canal" value="correo" onchange="actualizarInterfazCanal()"> 
                     📧 Correo Electrónico
                 </label>
-                <!-- NUEVO: Opción de SMS -->
                 <label>
                     <input type="radio" name="tipo_canal" value="sms" onchange="actualizarInterfazCanal()"> 
                     💬 SMS
@@ -176,7 +175,7 @@
         </div>
         
         <!-- Configuración de Plataforma / App -->
-        <div class="config-box" id="wrapper-config"> <!-- ID añadido para ocultar en SMS -->
+        <div class="config-box" id="wrapper-config"> 
             <label>
                 <input type="checkbox" id="usar-desktop"> 
                 <span id="label-desktop">Activar para usar la App de Escritorio de WhatsApp</span>
@@ -312,7 +311,7 @@
                     • <strong>Columna D:</strong> (Opcional) Asunto del correo
                 `;
             } else if (canal === 'sms') {
-                // NUEVO: Configuración para SMS
+                // Configuración para SMS
                 wrapperConfig.style.display = "none"; // Ocultamos el checkbox porque SMS usa la app nativa por defecto
                 wrapperAsunto.style.display = "none";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Número Celular):";
@@ -521,10 +520,22 @@
                     window.open(url, "ventana_envio");
                 }
             } else if (canal === 'sms') {
-                // NUEVO: Protocolo sms: para enviar mensajes de texto
-                // Nota: usamos _self para que el navegador intente abrir la aplicación nativa directamente sin dejar pestañas vacías.
-                url = `sms:${contacto.destino}?body=${textoCodificado}`;
-                window.open(url, "_self");
+                // Determinar si es un dispositivo iOS (iPhone/iPad)
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                
+                // iOS históricamente requiere '&' en lugar de '?' para el parámetro body
+                const separador = isIOS ? '&' : '?';
+                
+                url = `sms:${contacto.destino}${separador}body=${textoCodificado}`;
+                
+                // Para SMS, crear un enlace (anchor) y hacerle clic virtual 
+                // es el método más confiable en la mayoría de navegadores móviles y de PC
+                const enlaceTemporal = document.createElement('a');
+                enlaceTemporal.href = url;
+                enlaceTemporal.target = "_self"; 
+                document.body.appendChild(enlaceTemporal);
+                enlaceTemporal.click();
+                document.body.removeChild(enlaceTemporal);
             }
         }
 
