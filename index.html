@@ -469,10 +469,11 @@
 
                 let botonesAccionHtml = '';
                 if (canal === 'sms') {
+                    // Orden cambiado: Primero copiar número, luego copiar mensaje
                     botonesAccionHtml = `
                         <button class="btn-action btn-send" onclick="ejecutarEnvio(${index}, this)">➤ Enviar / Abrir</button>
-                        <button class="btn-action btn-copy-msg" onclick="copiarTextoEspecifico(${index}, 'mensaje', this)">📋 Msg</button>
                         <button class="btn-action btn-copy-num" onclick="copiarTextoEspecifico(${index}, 'numero', this)">📋 Núm</button>
+                        <button class="btn-action btn-copy-msg" onclick="copiarTextoEspecifico(${index}, 'mensaje', this)">📋 Msg</button>
                         <button class="btn-action btn-success" onclick="marcarEstado(${index}, 'Enviado')">✅</button>
                         <button class="btn-action btn-fail" onclick="marcarEstado(${index}, 'Fallido')">❌</button>
                     `;
