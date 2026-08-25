@@ -183,22 +183,6 @@
             </label>
         </div>
 
-        <!-- Configuración Exclusiva para SMS (Opciones de Portapapeles) -->
-        <div class="config-box" id="wrapper-sms-opciones" style="display: none; background-color: #fff3cd; border-left-color: #ffc107;">
-            <strong>⚙️ Opciones del botón principal (Enviar) para SMS:</strong>
-            <div style="display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap;">
-                <label style="font-weight: normal; cursor: pointer;">
-                    <input type="radio" name="sms_copiar_modo" value="mensaje" checked> Copiar Mensaje al portapapeles
-                </label>
-                <label style="font-weight: normal; cursor: pointer;">
-                    <input type="radio" name="sms_copiar_modo" value="numero"> Copiar Número al portapapeles
-                </label>
-                <label style="font-weight: normal; cursor: pointer;">
-                    <input type="radio" name="sms_copiar_modo" value="ambos"> Copiar Número y Mensaje
-                </label>
-            </div>
-        </div>
-
         <!-- Panel de Estadísticas -->
         <div class="dashboard">
             <div class="stat-box">
@@ -289,7 +273,6 @@
             const canal = document.querySelector('input[name="tipo_canal"]:checked').value;
             const labelDesktop = document.getElementById('label-desktop');
             const wrapperConfig = document.getElementById('wrapper-config');
-            const wrapperSmsOpciones = document.getElementById('wrapper-sms-opciones');
             const wrapperAsunto = document.getElementById('wrapper-asunto-manual');
             const lblContactos = document.getElementById('lbl-contactos-manual');
             const noteManual = document.getElementById('note-manual');
@@ -300,7 +283,6 @@
 
             if (canal === 'whatsapp') {
                 wrapperConfig.style.display = "flex";
-                wrapperSmsOpciones.style.display = "none";
                 labelDesktop.innerText = "Activar para usar la App de Escritorio de WhatsApp (Si no, usará WhatsApp Web)";
                 wrapperAsunto.style.display = "none";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Número):";
@@ -314,7 +296,6 @@
                 `;
             } else if (canal === 'correo') {
                 wrapperConfig.style.display = "flex";
-                wrapperSmsOpciones.style.display = "none";
                 labelDesktop.innerText = "Activar para usar tu cliente de correo de Escritorio (Outlook, Thunderbird, Mail) — Si lo dejas vacío, usará Gmail Web";
                 wrapperAsunto.style.display = "block";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Correo):";
@@ -329,7 +310,6 @@
                 `;
             } else if (canal === 'sms') {
                 wrapperConfig.style.display = "none"; 
-                wrapperSmsOpciones.style.display = "block";
                 wrapperAsunto.style.display = "none";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Teléfono Celular):";
                 noteManual.innerText = "Puedes copiar las 2 columnas directo de Excel y pegarlas aquí.";
@@ -487,7 +467,6 @@
                 const detalleDestino = (canal === 'whatsapp' || canal === 'sms') ? `Tel: ${contacto.destino}` : `Email: ${contacto.destino}`;
                 const asuntoHtml = canal === 'correo' ? `<p><strong>Asunto:</strong> ${contacto.asunto}</p>` : '';
 
-                // Botones dinámicos según el canal
                 let botonesAccionHtml = '';
                 if (canal === 'sms') {
                     botonesAccionHtml = `
@@ -562,15 +541,8 @@
                     window.open(url, "ventana_envio");
                 }
             } else if (canal === 'sms') {
-                // Leer qué eligió el usuario en el panel de configuración SMS
-                const modoCopiar = document.querySelector('input[name="sms_copiar_modo"]:checked').value;
+                // Copia automáticamente el mensaje al portapapeles por defecto al hacer clic en el botón principal
                 let textoACopiar = contacto.mensaje;
-
-                if (modoCopiar === 'numero') {
-                    textoACopiar = contacto.destino;
-                } else if (modoCopiar === 'ambos') {
-                    textoACopiar = `Número: ${contacto.destino}\nMensaje: ${contacto.mensaje}`;
-                }
 
                 navigator.clipboard.writeText(textoACopiar).then(() => {
                     const textoOriginal = botonElemento.innerHTML;
