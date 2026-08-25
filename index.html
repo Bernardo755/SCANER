@@ -167,6 +167,7 @@
                     <input type="radio" name="tipo_canal" value="correo" onchange="actualizarInterfazCanal()"> 
                     📧 Correo Electrónico
                 </label>
+                <!-- Opción de SMS -->
                 <label>
                     <input type="radio" name="tipo_canal" value="sms" onchange="actualizarInterfazCanal()"> 
                     💬 SMS
@@ -311,8 +312,7 @@
                     • <strong>Columna D:</strong> (Opcional) Asunto del correo
                 `;
             } else if (canal === 'sms') {
-                // Configuración para SMS
-                wrapperConfig.style.display = "none"; // Ocultamos el checkbox porque SMS usa la app nativa por defecto
+                wrapperConfig.style.display = "none"; 
                 wrapperAsunto.style.display = "none";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Número Celular):";
                 noteManual.innerText = "Puedes copiar las 2 columnas directo de Excel y pegarlas aquí.";
@@ -375,7 +375,6 @@
                     const nombre = datos[0].trim();
                     let destino = datos[1].trim();
 
-                    // Limpiamos los números tanto para WhatsApp como para SMS
                     if (canal === 'whatsapp' || canal === 'sms') {
                         destino = destino.replace(/\D/g, ''); 
                     }
@@ -424,7 +423,6 @@
                             const nombre = String(fila[0]).trim();
                             let destino = String(fila[1]).trim();
 
-                            // Limpiamos los números tanto para WhatsApp como para SMS
                             if (canal === 'whatsapp' || canal === 'sms') {
                                 destino = destino.replace(/\D/g, '');
                             }
@@ -483,7 +481,7 @@
                         <small>Estado: <strong>${contacto.estado}</strong></small>
                     </div>
                     <div class="contact-actions">
-                        <button class="btn-action btn-send" onclick="ejecutarEnvio(${index})">➤ Enviar</button>
+                        <button class="btn-action btn-send" onclick="ejecutarEnvio(${index}, this)">➤ Enviar</button>
                         <button class="btn-action btn-success" onclick="marcarEstado(${index}, 'Enviado')">✅</button>
                         <button class="btn-action btn-fail" onclick="marcarEstado(${index}, 'Fallido')">❌</button>
                     </div>
@@ -494,7 +492,7 @@
             actualizarEstadisticas();
         }
 
-        function ejecutarEnvio(index) {
+        function ejecutarEnvio(index, botonElemento) {
             const contacto = contactosData[index];
             const canal = document.querySelector('input[name="tipo_canal"]:checked').value;
             const usarDesktop = document.getElementById('usar-desktop').checked;
@@ -520,22 +518,29 @@
                     window.open(url, "ventana_envio");
                 }
             } else if (canal === 'sms') {
-                // Determinar si es un dispositivo iOS (iPhone/iPad)
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-                
-                // iOS históricamente requiere '&' en lugar de '?' para el parámetro body
-                const separador = isIOS ? '&' : '?';
-                
-                url = `sms:${contacto.destino}${separador}body=${textoCodificado}`;
-                
-                // Para SMS, crear un enlace (anchor) y hacerle clic virtual 
-                // es el método más confiable en la mayoría de navegadores móviles y de PC
-                const enlaceTemporal = document.createElement('a');
-                enlaceTemporal.href = url;
-                enlaceTemporal.target = "_self"; 
-                document.body.appendChild(enlaceTemporal);
-                enlaceTemporal.click();
-                document.body.removeChild(enlaceTemporal);
+                // Copia automática del texto al portapapeles
+                navigator.clipboard.writeText(contacto.mensaje).then(() => {
+                    const textoOriginal = botonElemento.innerHTML;
+                    botonElemento.innerHTML = "✅ ¡Copiado!";
+                    botonElemento.style.backgroundColor = "#28a745";
+                    
+                    setTimeout(() => {
+                        botonElemento.innerHTML = textoOriginal;
+                        botonElemento.style.backgroundColor = "";
+                    }, 2000);
+
+                    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                        const separador = isIOS ? '&' : '?';
+                        window.location.href = `sms:${contacto.destino}${separador}body=${textoCodificado}`;
+                    } else {
+                        // En computadora abrimos Google Messages Web para que peguen el mensaje con Ctrl+V
+                        window.open("https://messages.google.com/web/", "google_messages");
+                    }
+                }).catch(err => {
+                    alert("Copia este mensaje manualmente:\n\n" + contacto.mensaje);
+                });
             }
         }
 
