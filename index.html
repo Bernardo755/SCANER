@@ -19,7 +19,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 800px;
+            max-width: 850px;
             margin: 0 auto;
         }
         h1 { color: #128C7E; text-align: center; margin-top: 0; transition: color 0.3s; }
@@ -36,7 +36,7 @@
             display: flex;
             gap: 20px;
             margin-top: 8px;
-            flex-wrap: wrap; /* Para que no se amontonen si la pantalla es chica */
+            flex-wrap: wrap;
         }
         .channel-options label {
             margin: 0;
@@ -53,8 +53,6 @@
             padding: 15px;
             margin-bottom: 20px;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
         }
         .config-box label {
             margin: 0;
@@ -131,20 +129,23 @@
             display: flex; justify-content: space-between; align-items: center;
             background-color: #fff; border: 1px solid #ddd; border-left: 5px solid #ccc;
             padding: 15px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex-wrap: wrap; gap: 10px;
         }
         .contact-card.status-Enviado { border-left-color: #28a745; background-color: #f0fff4; }
         .contact-card.status-Fallido { border-left-color: #dc3545; background-color: #fff0f0; }
         
-        .contact-info { flex: 1; padding-right: 15px; }
+        .contact-info { flex: 1; min-width: 250px; padding-right: 10px; }
         .contact-info h4 { margin: 0 0 5px 0; color: #333; }
         .contact-info p { margin: 0; font-size: 0.9em; color: #666; }
         
-        .contact-actions { display: flex; gap: 8px; }
+        .contact-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .btn-action {
-            padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;
-            font-weight: bold; color: white; transition: 0.2s;
+            padding: 8px 10px; border: none; border-radius: 4px; cursor: pointer;
+            font-weight: bold; color: white; transition: 0.2s; font-size: 13px;
         }
         .btn-send { background-color: #007bff; }
+        .btn-copy-msg { background-color: #17a2b8; }
+        .btn-copy-num { background-color: #6c757d; }
         .btn-success { background-color: #28a745; }
         .btn-fail { background-color: #dc3545; }
         .btn-action:hover { opacity: 0.8; }
@@ -167,7 +168,6 @@
                     <input type="radio" name="tipo_canal" value="correo" onchange="actualizarInterfazCanal()"> 
                     📧 Correo Electrónico
                 </label>
-                <!-- Opción de SMS -->
                 <label>
                     <input type="radio" name="tipo_canal" value="sms" onchange="actualizarInterfazCanal()"> 
                     💬 SMS
@@ -181,6 +181,22 @@
                 <input type="checkbox" id="usar-desktop"> 
                 <span id="label-desktop">Activar para usar la App de Escritorio de WhatsApp</span>
             </label>
+        </div>
+
+        <!-- Configuración Exclusiva para SMS (Opciones de Portapapeles) -->
+        <div class="config-box" id="wrapper-sms-opciones" style="display: none; background-color: #fff3cd; border-left-color: #ffc107;">
+            <strong>⚙️ Opciones del botón principal (Enviar) para SMS:</strong>
+            <div style="display: flex; gap: 20px; margin-top: 8px; flex-wrap: wrap;">
+                <label style="font-weight: normal; cursor: pointer;">
+                    <input type="radio" name="sms_copiar_modo" value="mensaje" checked> Copiar Mensaje al portapapeles
+                </label>
+                <label style="font-weight: normal; cursor: pointer;">
+                    <input type="radio" name="sms_copiar_modo" value="numero"> Copiar Número al portapapeles
+                </label>
+                <label style="font-weight: normal; cursor: pointer;">
+                    <input type="radio" name="sms_copiar_modo" value="ambos"> Copiar Número y Mensaje
+                </label>
+            </div>
         </div>
 
         <!-- Panel de Estadísticas -->
@@ -257,11 +273,9 @@
     </div>
 
     <script>
-        // Variables globales
         let contactosData = [];
         let modoActual = 'manual';
 
-        // Cambiar entre Pestañas
         function cambiarPestana(modo) {
             modoActual = modo;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -271,11 +285,11 @@
             document.getElementById('tab-' + modo).classList.add('active');
         }
 
-        // Cambiar Interfaz dinámicamente según el Canal (WhatsApp, Correo, o SMS)
         function actualizarInterfazCanal() {
             const canal = document.querySelector('input[name="tipo_canal"]:checked').value;
             const labelDesktop = document.getElementById('label-desktop');
             const wrapperConfig = document.getElementById('wrapper-config');
+            const wrapperSmsOpciones = document.getElementById('wrapper-sms-opciones');
             const wrapperAsunto = document.getElementById('wrapper-asunto-manual');
             const lblContactos = document.getElementById('lbl-contactos-manual');
             const noteManual = document.getElementById('note-manual');
@@ -286,6 +300,7 @@
 
             if (canal === 'whatsapp') {
                 wrapperConfig.style.display = "flex";
+                wrapperSmsOpciones.style.display = "none";
                 labelDesktop.innerText = "Activar para usar la App de Escritorio de WhatsApp (Si no, usará WhatsApp Web)";
                 wrapperAsunto.style.display = "none";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Número):";
@@ -299,6 +314,7 @@
                 `;
             } else if (canal === 'correo') {
                 wrapperConfig.style.display = "flex";
+                wrapperSmsOpciones.style.display = "none";
                 labelDesktop.innerText = "Activar para usar tu cliente de correo de Escritorio (Outlook, Thunderbird, Mail) — Si lo dejas vacío, usará Gmail Web";
                 wrapperAsunto.style.display = "block";
                 lblContactos.innerText = "Pega desde Excel (Nombre y Correo):";
@@ -313,8 +329,9 @@
                 `;
             } else if (canal === 'sms') {
                 wrapperConfig.style.display = "none"; 
+                wrapperSmsOpciones.style.display = "block";
                 wrapperAsunto.style.display = "none";
-                lblContactos.innerText = "Pega desde Excel (Nombre y Número Celular):";
+                lblContactos.innerText = "Pega desde Excel (Nombre y Teléfono Celular):";
                 noteManual.innerText = "Puedes copiar las 2 columnas directo de Excel y pegarlas aquí.";
                 txtContactos.placeholder = "Juan Pérez\t5512345678";
 
@@ -326,7 +343,6 @@
             }
         }
 
-        // Limpiar Formularios
         function limpiarManual() {
             document.getElementById('contactos').value = '';
             document.getElementById('mensaje-manual').value = '';
@@ -347,7 +363,6 @@
             actualizarEstadisticas();
         }
 
-        // --- PROCESAMIENTO DE DATOS ---
         function procesarManual() {
             const canal = document.querySelector('input[name="tipo_canal"]:checked').value;
             const contactosText = document.getElementById('contactos').value.trim();
@@ -458,7 +473,6 @@
             reader.readAsArrayBuffer(input.files[0]);
         }
 
-        // --- RENDERIZADO Y ENVÍOS ---
         function renderizarLista() {
             const contenedor = document.getElementById('lista-botones');
             const canal = document.querySelector('input[name="tipo_canal"]:checked').value;
@@ -473,6 +487,24 @@
                 const detalleDestino = (canal === 'whatsapp' || canal === 'sms') ? `Tel: ${contacto.destino}` : `Email: ${contacto.destino}`;
                 const asuntoHtml = canal === 'correo' ? `<p><strong>Asunto:</strong> ${contacto.asunto}</p>` : '';
 
+                // Botones dinámicos según el canal
+                let botonesAccionHtml = '';
+                if (canal === 'sms') {
+                    botonesAccionHtml = `
+                        <button class="btn-action btn-send" onclick="ejecutarEnvio(${index}, this)">➤ Enviar / Abrir</button>
+                        <button class="btn-action btn-copy-msg" onclick="copiarTextoEspecifico(${index}, 'mensaje', this)">📋 Msg</button>
+                        <button class="btn-action btn-copy-num" onclick="copiarTextoEspecifico(${index}, 'numero', this)">📋 Núm</button>
+                        <button class="btn-action btn-success" onclick="marcarEstado(${index}, 'Enviado')">✅</button>
+                        <button class="btn-action btn-fail" onclick="marcarEstado(${index}, 'Fallido')">❌</button>
+                    `;
+                } else {
+                    botonesAccionHtml = `
+                        <button class="btn-action btn-send" onclick="ejecutarEnvio(${index}, this)">➤ Enviar</button>
+                        <button class="btn-action btn-success" onclick="marcarEstado(${index}, 'Enviado')">✅</button>
+                        <button class="btn-action btn-fail" onclick="marcarEstado(${index}, 'Fallido')">❌</button>
+                    `;
+                }
+
                 card.innerHTML = `
                     <div class="contact-info">
                         <h4>${contacto.nombre} (${detalleDestino})</h4>
@@ -481,9 +513,7 @@
                         <small>Estado: <strong>${contacto.estado}</strong></small>
                     </div>
                     <div class="contact-actions">
-                        <button class="btn-action btn-send" onclick="ejecutarEnvio(${index}, this)">➤ Enviar</button>
-                        <button class="btn-action btn-success" onclick="marcarEstado(${index}, 'Enviado')">✅</button>
-                        <button class="btn-action btn-fail" onclick="marcarEstado(${index}, 'Fallido')">❌</button>
+                        ${botonesAccionHtml}
                     </div>
                 `;
                 contenedor.appendChild(card);
@@ -492,11 +522,25 @@
             actualizarEstadisticas();
         }
 
+        function copiarTextoEspecifico(index, tipo, botonElemento) {
+            const contacto = contactosData[index];
+            const textoACopiar = tipo === 'mensaje' ? contacto.mensaje : contacto.destino;
+
+            navigator.clipboard.writeText(textoACopiar).then(() => {
+                const textoOriginal = botonElemento.innerHTML;
+                botonElemento.innerHTML = "✅ ¡Copiado!";
+                setTimeout(() => {
+                    botonElemento.innerHTML = textoOriginal;
+                }, 1500);
+            }).catch(err => {
+                alert("No se pudo copiar automáticamente.");
+            });
+        }
+
         function ejecutarEnvio(index, botonElemento) {
             const contacto = contactosData[index];
             const canal = document.querySelector('input[name="tipo_canal"]:checked').value;
             const usarDesktop = document.getElementById('usar-desktop').checked;
-
             const textoCodificado = encodeURIComponent(contacto.mensaje);
             let url = "";
 
@@ -518,8 +562,17 @@
                     window.open(url, "ventana_envio");
                 }
             } else if (canal === 'sms') {
-                // Copia automática del texto al portapapeles
-                navigator.clipboard.writeText(contacto.mensaje).then(() => {
+                // Leer qué eligió el usuario en el panel de configuración SMS
+                const modoCopiar = document.querySelector('input[name="sms_copiar_modo"]:checked').value;
+                let textoACopiar = contacto.mensaje;
+
+                if (modoCopiar === 'numero') {
+                    textoACopiar = contacto.destino;
+                } else if (modoCopiar === 'ambos') {
+                    textoACopiar = `Número: ${contacto.destino}\nMensaje: ${contacto.mensaje}`;
+                }
+
+                navigator.clipboard.writeText(textoACopiar).then(() => {
                     const textoOriginal = botonElemento.innerHTML;
                     botonElemento.innerHTML = "✅ ¡Copiado!";
                     botonElemento.style.backgroundColor = "#28a745";
@@ -535,11 +588,10 @@
                         const separador = isIOS ? '&' : '?';
                         window.location.href = `sms:${contacto.destino}${separador}body=${textoCodificado}`;
                     } else {
-                        // En computadora abrimos Google Messages Web para que peguen el mensaje con Ctrl+V
                         window.open("https://messages.google.com/web/", "google_messages");
                     }
                 }).catch(err => {
-                    alert("Copia este mensaje manualmente:\n\n" + contacto.mensaje);
+                    alert("Copia este texto manualmente:\n\n" + textoACopiar);
                 });
             }
         }
@@ -566,7 +618,6 @@
             XLSX.writeFile(workbook, "Reporte_Envios.xlsx");
         }
 
-        // Inicializar etiquetas correctas al cargar
         actualizarInterfazCanal();
     </script>
 </body>
