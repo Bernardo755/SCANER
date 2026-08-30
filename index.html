@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora Maderera Pro (Multimedidas)</title>
+  <title>Calculadora Maderera Pro (Multimedidas Independientes)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 md:p-8 pb-20">
@@ -15,9 +15,15 @@
         <h1 class="text-2xl font-bold">🪵 Calculadora de Madera Pro</h1>
         <p class="text-amber-200 text-sm">Cálculo de pies con soporte multimetría y análisis de muebles</p>
       </div>
-      <button onclick="consultarHistorial()" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-amber-500 shadow-md">
-        📋 Consultar y Editar
-      </button>
+      <div class="flex gap-2">
+        <!-- BOTÓN NUEVO: CONVERSOR -->
+        <button onclick="abrirConversor()" class="bg-teal-700 hover:bg-teal-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-teal-500 shadow-md">
+          🧮 Conversor
+        </button>
+        <button onclick="consultarHistorial()" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-amber-500 shadow-md">
+          📋 Consultar y Editar
+        </button>
+      </div>
     </header>
 
     <main class="bg-white rounded-xl shadow-md p-6 space-y-6">
@@ -38,43 +44,14 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-100 border-b text-xs uppercase text-slate-500 font-semibold">
-              <th class="p-3 text-center w-10 align-top pt-4">#</th>
-              
-              <!-- ENCABEZADOS CON SELECTORES DE UNIDAD -->
-              <th class="p-3 align-top">
-                <div class="flex flex-col gap-1">
-                  <span>Largo</span>
-                  <select id="unidad-largo" class="text-xs border border-slate-300 rounded p-1 font-normal text-slate-700 bg-white outline-none focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
-                    <option value="ft">Pies (ft)</option>
-                    <option value="cm">cm</option>
-                  </select>
-                </div>
-              </th>
-              
-              <th class="p-3 align-top">
-                <div class="flex flex-col gap-1">
-                  <span>Ancho</span>
-                  <select id="unidad-ancho" class="text-xs border border-slate-300 rounded p-1 font-normal text-slate-700 bg-white outline-none focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
-                    <option value="in">Pulgadas (in)</option>
-                    <option value="cm">cm</option>
-                  </select>
-                </div>
-              </th>
-              
-              <th class="p-3 align-top">
-                <div class="flex flex-col gap-1">
-                  <span>Grosor</span>
-                  <select id="unidad-grosor" class="text-xs border border-slate-300 rounded p-1 font-normal text-slate-700 bg-white outline-none focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
-                    <option value="in">Pulgadas (in)</option>
-                    <option value="cm">cm</option>
-                  </select>
-                </div>
-              </th>
-
-              <th class="p-3 align-top pt-4">Cantidad</th>
-              <th class="p-3 align-top pt-4">Pies/Tabla</th>
-              <th class="p-3 align-top pt-4">Subtotal PT</th>
-              <th class="p-3 text-center align-top pt-4">X</th>
+              <th class="p-3 text-center w-10">#</th>
+              <th class="p-3">Largo</th>
+              <th class="p-3">Ancho</th>
+              <th class="p-3">Grosor</th>
+              <th class="p-3 text-center w-24">Cantidad</th>
+              <th class="p-3 text-center">Pies/Tabla</th>
+              <th class="p-3 text-center">Subtotal PT</th>
+              <th class="p-3 text-center">X</th>
             </tr>
           </thead>
           <tbody id="filas-madera" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -133,7 +110,7 @@
 
     </main>
 
-    <!-- MODAL DE CONSULTA -->
+    <!-- MODAL DE CONSULTA HISTORIAL -->
     <div id="modal-historial" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
@@ -148,6 +125,45 @@
             </thead>
             <tbody id="body-historial" class="divide-y divide-slate-200"></tbody>
           </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL NUEVO: CONVERSOR Y CALCULADORA DE FRACCIONES -->
+    <div id="modal-conversor" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div class="p-4 bg-teal-800 text-white flex justify-between items-center">
+          <h2 class="text-lg font-bold">🧮 Conversor de Medidas</h2>
+          <button onclick="cerrarConversor()" class="text-teal-200 hover:text-white font-bold text-2xl">&times;</button>
+        </div>
+        <div class="p-6 space-y-6">
+          <p class="text-sm text-slate-500">Ingresa una medida en decimal o fracción (ej. <span class="font-mono bg-slate-100 px-1">1 1/2</span> o <span class="font-mono bg-slate-100 px-1">3/4</span>) y selecciona la unidad.</p>
+          
+          <div class="flex gap-2">
+            <input type="text" id="conv-input" placeholder="Ej: 1 1/2" class="w-full border border-slate-300 rounded-lg p-3 text-lg text-center outline-none focus:ring-2 focus:ring-teal-500" oninput="convertirValores()">
+            <select id="conv-unidad" class="border border-slate-300 rounded-lg p-3 bg-white outline-none focus:ring-2 focus:ring-teal-500 font-semibold" onchange="convertirValores()">
+              <option value="in">Pulgadas (in)</option>
+              <option value="cm">Centímetros (cm)</option>
+              <option value="ft">Pies (ft)</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+            <div class="flex justify-between items-center border-b pb-2 border-slate-200">
+              <span class="text-slate-500 font-medium">En Pulgadas:</span>
+              <span id="res-in" class="font-bold text-lg text-slate-800">0.000 in</span>
+            </div>
+            <div class="flex justify-between items-center border-b pb-2 border-slate-200">
+              <span class="text-slate-500 font-medium">En Centímetros:</span>
+              <span id="res-cm" class="font-bold text-lg text-slate-800">0.00 cm</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500 font-medium">En Pies:</span>
+              <span id="res-ft" class="font-bold text-lg text-slate-800">0.000 ft</span>
+            </div>
+          </div>
+          
+          <button onclick="cerrarConversor()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg transition">Cerrar</button>
         </div>
       </div>
     </div>
@@ -186,17 +202,96 @@
     }
 
     // =====================================
+    // LÓGICA DEL CONVERSOR (NUEVO)
+    // =====================================
+    function abrirConversor() {
+      document.getElementById("modal-conversor").classList.remove("hidden");
+      document.getElementById("conv-input").focus();
+    }
+    
+    function cerrarConversor() {
+      document.getElementById("modal-conversor").classList.add("hidden");
+    }
+
+    function convertirValores() {
+      const inputVal = document.getElementById("conv-input").value;
+      const unidad = document.getElementById("conv-unidad").value;
+      const valDec = procesarFraccion(inputVal);
+
+      if (valDec === 0) {
+        document.getElementById("res-in").textContent = "0.000 in";
+        document.getElementById("res-cm").textContent = "0.00 cm";
+        document.getElementById("res-ft").textContent = "0.000 ft";
+        return;
+      }
+
+      let inVal = 0, cmVal = 0, ftVal = 0;
+
+      if (unidad === 'in') {
+        inVal = valDec;
+        cmVal = valDec * 2.54;
+        ftVal = valDec / 12;
+      } else if (unidad === 'cm') {
+        cmVal = valDec;
+        inVal = valDec / 2.54;
+        ftVal = valDec / 30.48;
+      } else if (unidad === 'ft') {
+        ftVal = valDec;
+        inVal = valDec * 12;
+        cmVal = valDec * 30.48;
+      }
+
+      document.getElementById("res-in").textContent = inVal.toFixed(3) + " in";
+      document.getElementById("res-cm").textContent = cmVal.toFixed(2) + " cm";
+      document.getElementById("res-ft").textContent = ftVal.toFixed(3) + " ft";
+    }
+
+
+    // =====================================
     // LÓGICA DE TABLAS / INVENTARIO DE MADERA
     // =====================================
     function agregarFila(datos = null) {
       const tbody = document.getElementById("filas-madera");
       const tr = document.createElement("tr");
       
+      // Valores por defecto de las unidades si no hay datos guardados
+      const uLargo = datos ? datos.uLargo : 'ft';
+      const uAncho = datos ? datos.uAncho : 'in';
+      const uGrosor = datos ? datos.uGrosor : 'in';
+
       tr.innerHTML = `
         <td class="p-2 text-center font-bold text-slate-400 num-fila"></td>
-        <td class="p-2"><input type="text" class="largo border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.largo : ''}" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="text" class="ancho border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.ancho : ''}" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="text" class="grosor border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.grosor : ''}" oninput="calcularTotales()"></td>
+        
+        <td class="p-2">
+          <div class="flex flex-col sm:flex-row gap-1">
+            <input type="text" class="largo border border-slate-300 rounded p-1.5 w-full sm:w-20 text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.largo : ''}" oninput="calcularTotales()">
+            <select class="u-largo text-xs border border-slate-300 bg-slate-50 rounded p-1 outline-none text-slate-600 focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
+              <option value="ft" ${uLargo === 'ft' ? 'selected' : ''}>ft</option>
+              <option value="cm" ${uLargo === 'cm' ? 'selected' : ''}>cm</option>
+            </select>
+          </div>
+        </td>
+
+        <td class="p-2">
+          <div class="flex flex-col sm:flex-row gap-1">
+            <input type="text" class="ancho border border-slate-300 rounded p-1.5 w-full sm:w-20 text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.ancho : ''}" oninput="calcularTotales()">
+            <select class="u-ancho text-xs border border-slate-300 bg-slate-50 rounded p-1 outline-none text-slate-600 focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
+              <option value="in" ${uAncho === 'in' ? 'selected' : ''}>in</option>
+              <option value="cm" ${uAncho === 'cm' ? 'selected' : ''}>cm</option>
+            </select>
+          </div>
+        </td>
+
+        <td class="p-2">
+          <div class="flex flex-col sm:flex-row gap-1">
+            <input type="text" class="grosor border border-slate-300 rounded p-1.5 w-full sm:w-20 text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.grosor : ''}" oninput="calcularTotales()">
+            <select class="u-grosor text-xs border border-slate-300 bg-slate-50 rounded p-1 outline-none text-slate-600 focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
+              <option value="in" ${uGrosor === 'in' ? 'selected' : ''}>in</option>
+              <option value="cm" ${uGrosor === 'cm' ? 'selected' : ''}>cm</option>
+            </select>
+          </div>
+        </td>
+
         <td class="p-2"><input type="number" step="1" min="1" class="cantidad border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.cantidad : '1'}" oninput="calcularTotales()"></td>
         <td class="p-2 font-medium text-slate-600 pies-unitarios text-center">0.00</td>
         <td class="p-2 font-bold text-amber-800 pies-subtotal text-center">0.00</td>
@@ -221,19 +316,20 @@
       });
     }
 
-    // CALCULA Y CONVIERTE UNIDADES
+    // CALCULA Y CONVIERTE UNIDADES DESDE CADA FILA
     function calcularTotales() {
       let grandTotal = 0;
       
-      const uLargo = document.getElementById("unidad-largo").value;
-      const uAncho = document.getElementById("unidad-ancho").value;
-      const uGrosor = document.getElementById("unidad-grosor").value;
-
       document.querySelectorAll("#filas-madera tr").forEach(fila => {
         let lVal = procesarFraccion(fila.querySelector(".largo").value);
         let aVal = procesarFraccion(fila.querySelector(".ancho").value);
         let gVal = procesarFraccion(fila.querySelector(".grosor").value);
         const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
+
+        // Obtener la unidad seleccionada para esta fila específica
+        const uLargo = fila.querySelector(".u-largo").value;
+        const uAncho = fila.querySelector(".u-ancho").value;
+        const uGrosor = fila.querySelector(".u-grosor").value;
 
         // Conversiones (La fórmula PT estándar necesita: Pies para Largo, Pulgadas para Ancho y Grosor)
         let largoFt = (uLargo === 'cm') ? lVal / 30.48 : lVal;
@@ -374,11 +470,6 @@
       document.getElementById("mueble-nombre").value = "";
       document.getElementById("resultado-mueble").classList.add("hidden");
       
-      // Reiniciar Selectores de unidad a métrica imperial por defecto
-      document.getElementById("unidad-largo").value = 'ft';
-      document.getElementById("unidad-ancho").value = 'in';
-      document.getElementById("unidad-grosor").value = 'in';
-
       document.getElementById("filas-madera").innerHTML = "";
       document.getElementById("filas-req-mueble").innerHTML = "";
       
@@ -397,14 +488,23 @@
 
       filas.forEach(fila => {
         const largoStr = fila.querySelector(".largo").value;
+        const uLargo = fila.querySelector(".u-largo").value;
         const anchoStr = fila.querySelector(".ancho").value;
+        const uAncho = fila.querySelector(".u-ancho").value;
         const grosorStr = fila.querySelector(".grosor").value;
+        const uGrosor = fila.querySelector(".u-grosor").value;
         const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
         const pt = parseFloat(fila.querySelector(".pies-unitarios").textContent);
         const spt = parseFloat(fila.querySelector(".pies-subtotal").textContent);
 
         if (procesarFraccion(largoStr) > 0 && cantidad > 0) {
-          items.push({ largo: largoStr, ancho: anchoStr, grosor: grosorStr, cantidad, piesPorTabla: pt, subtotalPies: spt });
+          // Ahora guardamos la unidad específica seleccionada de la fila
+          items.push({ 
+            largo: largoStr, uLargo: uLargo, 
+            ancho: anchoStr, uAncho: uAncho, 
+            grosor: grosorStr, uGrosor: uGrosor, 
+            cantidad, piesPorTabla: pt, subtotalPies: spt 
+          });
         }
       });
 
@@ -414,11 +514,6 @@
         id: proyectoActualId || "PRJ-" + new Date().getTime(),
         titulo: titulo,
         totalGeneral: parseFloat(document.getElementById("total-general").textContent),
-        unidades: {
-          largo: document.getElementById("unidad-largo").value,
-          ancho: document.getElementById("unidad-ancho").value,
-          grosor: document.getElementById("unidad-grosor").value
-        },
         filas: items,
         mueble: infoMuebleGuardar
       };
@@ -488,14 +583,8 @@
       document.getElementById("badge-edicion").classList.remove("hidden");
       document.getElementById("titulo").value = data.titulo;
 
-      // Restaurar las unidades de medida si existían al guardar
-      if (data.unidades) {
-        document.getElementById("unidad-largo").value = data.unidades.largo || 'ft';
-        document.getElementById("unidad-ancho").value = data.unidades.ancho || 'in';
-        document.getElementById("unidad-grosor").value = data.unidades.grosor || 'in';
-      }
-
       document.getElementById("filas-madera").innerHTML = "";
+      // Al iterar sobre filas, el nuevo agregarFila tomará en cuenta los "uLargo", "uAncho" para dejarlos seleccionados
       data.filas.forEach(f => agregarFila(f));
 
       document.getElementById("filas-req-mueble").innerHTML = "";
