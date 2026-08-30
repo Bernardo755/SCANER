@@ -3,30 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Pies de Madera</title>
+  <title>Calculadora de Pies de Madera (Soporta Fracciones)</title>
+  <!-- Tailwind CSS para interfaz moderna y rápida -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 md:p-8">
 
   <div class="max-w-5xl mx-auto space-y-6">
     
+    <!-- Encabezado -->
     <header class="bg-amber-800 text-white p-6 rounded-xl shadow-lg flex justify-between items-center">
       <div>
         <h1 class="text-2xl font-bold">🪵 Calculadora de Madera</h1>
-        <p class="text-amber-200 text-sm">Cálculo de pies tablares e integración con Google Sheets</p>
+        <p class="text-amber-200 text-sm">Cálculo de pies tablares (Soporta decimales y fracciones como 1 1/2 o 3/4)</p>
       </div>
       <button onclick="consultarHistorial()" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-amber-500">
         📋 Consultar Guardados
       </button>
     </header>
 
+    <!-- Formulario Principal -->
     <main class="bg-white rounded-xl shadow-md p-6 space-y-6">
       
+      <!-- Título del proyecto/cálculo -->
       <div>
         <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1">Título o Referencia del Cálculo *</label>
         <input type="text" id="titulo" placeholder="Ej: Pedido Cliente Perez - Comedor" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none">
       </div>
 
+      <!-- Nota de uso -->
+      <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-sm flex gap-2 items-center">
+        <span>💡 <b>Tip:</b> Puedes ingresar números enteros (2), decimales (1.5), fracciones (3/4) o fracciones mixtas usando un espacio o guion (1 1/2 o 1-1/2).</span>
+      </div>
+
+      <!-- Tabla de Medidas -->
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
@@ -41,10 +51,12 @@
             </tr>
           </thead>
           <tbody id="filas-madera" class="divide-y divide-slate-100 text-sm">
-            </tbody>
+            <!-- Filas dinámicas -->
+          </tbody>
         </table>
       </div>
 
+      <!-- Botones de Acción Formulario -->
       <div class="flex flex-wrap justify-between items-center gap-4 pt-4 border-t">
         <button onclick="agregarFila()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1">
           ➕ Agregar Medida
@@ -60,6 +72,7 @@
         </div>
       </div>
 
+      <!-- Total General -->
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center text-amber-900">
         <span class="text-lg font-semibold">Total de Pies Tablares:</span>
         <span id="total-general" class="text-3xl font-extrabold">0.00 PT</span>
@@ -67,6 +80,7 @@
 
     </main>
 
+    <!-- Modal / Sección de Consulta -->
     <div id="modal-historial" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-center items-center p-4">
       <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
@@ -88,23 +102,61 @@
   </div>
 
   <script>
-    // URL desplegada del script de Google Apps Script
+    // === ⚠️ REEMPLAZA ESTA URL POR LA TUYA ⚠️ ===
     const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbx6JQeAHDQxdY35zH5NZKQwE1Qbd1zMobPala6QMnmxeHJFVkCUrGDpfAf89XaRjWTbXA/exec";
 
-    // Inicializar app con una fila vacía
     document.addEventListener("DOMContentLoaded", () => {
       agregarFila();
     });
 
+    // Función crucial: Convierte strings con fracciones (ej. "1 1/2", "3/4") a decimal (1.5, 0.75)
+    function procesarFraccion(valor) {
+      if (!valor) return 0;
+      valor = valor.toString().trim();
+      
+      // Si ya es un número válido (ej. "1.5" o "2")
+      if (!isNaN(valor)) return parseFloat(valor) || 0;
+
+      // Buscar fracciones mixtas separadas por espacio o guion (ej: "1 1/2" o "1-1/2")
+      const mixedMatch = valor.match(/^(\d+)[ \-](.+)$/);
+      if (mixedMatch) {
+        const entero = parseFloat(mixedMatch[1]);
+        const fraccionStr = mixedMatch[2];
+        const fraccionPartes = fraccionStr.split('/');
+        if (fraccionPartes.length === 2) {
+          const num = parseFloat(fraccionPartes[0]);
+          const den = parseFloat(fraccionPartes[1]);
+          if (den !== 0 && !isNaN(num) && !isNaN(den)) {
+            return entero + (num / den);
+          }
+        }
+      }
+
+      // Buscar fracciones simples (ej: "3/4")
+      if (valor.includes('/')) {
+        const partes = valor.split('/');
+        if (partes.length === 2) {
+          const num = parseFloat(partes[0]);
+          const den = parseFloat(partes[1]);
+          if (den !== 0 && !isNaN(num) && !isNaN(den)) {
+            return num / den;
+          }
+        }
+      }
+
+      return 0; // Si no pudo interpretarlo, devuelve 0 para no romper la suma
+    }
+
     // Agregar nueva fila de entrada de medidas
+    // NOTA: Cambiamos type="number" a type="text" para permitir diagonales y espacios
     function agregarFila() {
       const tbody = document.getElementById("filas-madera");
       const tr = document.createElement("tr");
 
       tr.innerHTML = `
-        <td class="p-2"><input type="number" step="0.01" class="largo border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Pies" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="number" step="0.01" class="ancho border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Pulgadas" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="number" step="0.01" class="grosor border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Pulgadas" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="text" class="largo border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Ej: 8" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="text" class="ancho border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Ej: 3/4" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="text" class="grosor border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Ej: 1 1/2" oninput="calcularTotales()"></td>
         <td class="p-2"><input type="number" step="1" min="1" class="cantidad border border-slate-300 rounded p-1.5 w-full focus:ring-2 focus:ring-amber-500 outline-none" value="1" oninput="calcularTotales()"></td>
         <td class="p-2 font-medium text-slate-600 pies-unitarios">0.00</td>
         <td class="p-2 font-bold text-amber-800 pies-subtotal">0.00</td>
@@ -134,9 +186,14 @@
       let grandTotal = 0;
 
       filas.forEach(fila => {
-        const largo = parseFloat(fila.querySelector(".largo").value) || 0;
-        const ancho = parseFloat(fila.querySelector(".ancho").value) || 0;
-        const grosor = parseFloat(fila.querySelector(".grosor").value) || 0;
+        // Usamos la nueva función procesarFraccion() en lugar de parseFloat()
+        const largoTexto = fila.querySelector(".largo").value;
+        const anchoTexto = fila.querySelector(".ancho").value;
+        const grosorTexto = fila.querySelector(".grosor").value;
+        
+        const largo = procesarFraccion(largoTexto);
+        const ancho = procesarFraccion(anchoTexto);
+        const grosor = procesarFraccion(grosorTexto);
         const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
 
         // Fórmula: (Grosor (plg) * Ancho (plg) * Largo (ft)) / 12
@@ -177,15 +234,29 @@
       const items = [];
 
       filas.forEach(fila => {
-        const largo = parseFloat(fila.querySelector(".largo").value) || 0;
-        const ancho = parseFloat(fila.querySelector(".ancho").value) || 0;
-        const grosor = parseFloat(fila.querySelector(".grosor").value) || 0;
+        // Guardamos los valores de texto originales (ej. "1 1/2") para que en la hoja de Sheets 
+        // se vea tal cual lo escribió el usuario
+        const largoStr = fila.querySelector(".largo").value;
+        const anchoStr = fila.querySelector(".ancho").value;
+        const grosorStr = fila.querySelector(".grosor").value;
+        
+        const largoDec = procesarFraccion(largoStr);
+        const anchoDec = procesarFraccion(anchoStr);
+        const grosorDec = procesarFraccion(grosorStr);
         const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
         const piesPorTabla = parseFloat(fila.querySelector(".pies-unitarios").textContent);
         const subtotalPies = parseFloat(fila.querySelector(".pies-subtotal").textContent);
 
-        if (largo > 0 && ancho > 0 && grosor > 0 && cantidad > 0) {
-          items.push({ largo, ancho, grosor, cantidad, piesPorTabla, subtotalPies });
+        // Solo guardar si hay medidas válidas calculables
+        if (largoDec > 0 && anchoDec > 0 && grosorDec > 0 && cantidad > 0) {
+          items.push({ 
+            largo: largoStr || 0, 
+            ancho: anchoStr || 0, 
+            grosor: grosorStr || 0, 
+            cantidad, 
+            piesPorTabla, 
+            subtotalPies 
+          });
         }
       });
 
@@ -203,7 +274,6 @@
       };
 
       try {
-        // Enviar datos usando fetch en modo no-cors o enviando JSON formateado
         await fetch(URL_APPS_SCRIPT, {
           method: "POST",
           mode: "no-cors",
@@ -251,12 +321,10 @@
           return;
         }
 
-        // Encabezados
         data[0].forEach(header => {
           headersContainer.innerHTML += `<th class="p-2 border-b">${header}</th>`;
         });
 
-        // Contenido
         for (let i = 1; i < data.length; i++) {
           let trHTML = "<tr class='hover:bg-slate-50'>";
           data[i].forEach(cell => {
