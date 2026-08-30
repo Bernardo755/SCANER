@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora Maderera Pro</title>
+  <title>Calculadora Maderera Pro (Multimedidas)</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 md:p-8 pb-20">
@@ -13,7 +13,7 @@
     <header class="bg-amber-800 text-white p-6 rounded-xl shadow-lg flex flex-wrap justify-between items-center gap-4">
       <div>
         <h1 class="text-2xl font-bold">🪵 Calculadora de Madera Pro</h1>
-        <p class="text-amber-200 text-sm">Cálculo de pies, fracciones, inventario y análisis de muebles</p>
+        <p class="text-amber-200 text-sm">Cálculo de pies con soporte multimetría y análisis de muebles</p>
       </div>
       <button onclick="consultarHistorial()" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-amber-500 shadow-md">
         📋 Consultar y Editar
@@ -29,23 +29,52 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Título o Referencia del Cálculo *</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Título o Referencia del Proyecto *</label>
         <input type="text" id="titulo" placeholder="Ej: Pedido Cliente Perez - Comedor" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none">
       </div>
 
-      <!-- Tabla de Medidas -->
+      <!-- Tabla de Medidas de Madera -->
       <div class="overflow-x-auto border border-slate-200 rounded-lg">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-100 border-b text-xs uppercase text-slate-500 font-semibold">
-              <th class="p-3 text-center w-10">#</th>
-              <th class="p-3">Largo (Ft)</th>
-              <th class="p-3">Ancho (In)</th>
-              <th class="p-3">Grosor (In)</th>
-              <th class="p-3">Cantidad</th>
-              <th class="p-3">Pies/Tabla</th>
-              <th class="p-3">Subtotal PT</th>
-              <th class="p-3 text-center">X</th>
+              <th class="p-3 text-center w-10 align-top pt-4">#</th>
+              
+              <!-- ENCABEZADOS CON SELECTORES DE UNIDAD -->
+              <th class="p-3 align-top">
+                <div class="flex flex-col gap-1">
+                  <span>Largo</span>
+                  <select id="unidad-largo" class="text-xs border border-slate-300 rounded p-1 font-normal text-slate-700 bg-white outline-none focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
+                    <option value="ft">Pies (ft)</option>
+                    <option value="cm">cm</option>
+                  </select>
+                </div>
+              </th>
+              
+              <th class="p-3 align-top">
+                <div class="flex flex-col gap-1">
+                  <span>Ancho</span>
+                  <select id="unidad-ancho" class="text-xs border border-slate-300 rounded p-1 font-normal text-slate-700 bg-white outline-none focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
+                    <option value="in">Pulgadas (in)</option>
+                    <option value="cm">cm</option>
+                  </select>
+                </div>
+              </th>
+              
+              <th class="p-3 align-top">
+                <div class="flex flex-col gap-1">
+                  <span>Grosor</span>
+                  <select id="unidad-grosor" class="text-xs border border-slate-300 rounded p-1 font-normal text-slate-700 bg-white outline-none focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
+                    <option value="in">Pulgadas (in)</option>
+                    <option value="cm">cm</option>
+                  </select>
+                </div>
+              </th>
+
+              <th class="p-3 align-top pt-4">Cantidad</th>
+              <th class="p-3 align-top pt-4">Pies/Tabla</th>
+              <th class="p-3 align-top pt-4">Subtotal PT</th>
+              <th class="p-3 text-center align-top pt-4">X</th>
             </tr>
           </thead>
           <tbody id="filas-madera" class="divide-y divide-slate-100 text-sm"></tbody>
@@ -64,26 +93,34 @@
 
       <!-- SECCIÓN: ANÁLISIS DE MUEBLE -->
       <div class="mt-8 border-t-2 border-slate-100 pt-6">
-        <h2 class="text-xl font-bold text-slate-700 mb-4 flex items-center gap-2">🪑 Análisis de Fabricación de Muebles</h2>
-        <p class="text-sm text-slate-500 mb-4">Calcula cuántas piezas puedes armar con la madera registrada arriba según el grosor que necesitas.</p>
+        <h2 class="text-xl font-bold text-slate-700 mb-2 flex items-center gap-2">🪑 Análisis de Fabricación de Muebles</h2>
+        <p class="text-sm text-slate-500 mb-6">Agrega los grosores (en pulgadas) y pies (PT) que requiere tu mueble. Se cruzará con tu inventario superior.</p>
         
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end bg-slate-50 p-4 rounded-lg border border-slate-200">
-          <div class="md:col-span-2">
-            <label class="block text-xs font-medium text-slate-600 mb-1">Nombre del Mueble (Opcional)</label>
-            <input type="text" id="mueble-nombre" placeholder="Ej: Silla de Comedor" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none">
-          </div>
+        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 space-y-4">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Grosor Requerido (In)</label>
-            <input type="text" id="mueble-grosor" placeholder="Ej: 1 1/2" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularMueble()">
+            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre del Mueble / Producto</label>
+            <input type="text" id="mueble-nombre" placeholder="Ej: Silla de Comedor" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularMueble()">
           </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Pies (PT) por Pieza</label>
-            <input type="number" step="0.1" id="mueble-pt" placeholder="Ej: 5.5" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularMueble()">
+
+          <div class="overflow-x-auto border border-blue-200 rounded-lg bg-white">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-blue-50 text-xs uppercase text-blue-800 font-semibold border-b border-blue-200">
+                  <th class="p-3">Grosor Requerido (Pulgadas)</th>
+                  <th class="p-3">Pies (PT) por Mueble</th>
+                  <th class="p-3 text-center w-20">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="filas-req-mueble" class="divide-y divide-slate-100 text-sm"></tbody>
+            </table>
           </div>
+          
+          <button onclick="agregarFilaMueble()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">
+            ➕ Agregar Grosor / Componente
+          </button>
         </div>
 
-        <!-- Resultados del Análisis -->
-        <div id="resultado-mueble" class="hidden mt-4 p-4 rounded-lg text-sm"></div>
+        <div id="resultado-mueble" class="hidden mt-4 p-5 rounded-lg text-sm shadow-inner transition-all"></div>
       </div>
 
       <!-- BOTONES FINALES -->
@@ -118,14 +155,18 @@
   </div>
 
   <script>
-    // === ⚠️ REEMPLAZA ESTA URL ⚠️ ===
+    // === ⚠️ REEMPLAZA ESTA URL CON TU SCRIPT EXISTENTE ⚠️ ===
     const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbyBMWLc_Q4dV6PG_VudNf9BT_17i4CEebdJKyfx6q9A5u6dr3vpTcsXRBBnkfHLnjQLZg/exec";
 
-    let proyectoActualId = null; // Guardará el ID si estamos editando
-    let infoMuebleGuardar = null; // Objeto que se enviará al backend con el análisis
+    let proyectoActualId = null;
+    let infoMuebleGuardar = null;
 
-    document.addEventListener("DOMContentLoaded", () => agregarFila());
+    document.addEventListener("DOMContentLoaded", () => {
+      agregarFila(); 
+      agregarFilaMueble(); 
+    });
 
+    // Convierte texto/fracciones a decimal
     function procesarFraccion(valor) {
       if (!valor) return 0;
       valor = valor.toString().trim();
@@ -135,36 +176,28 @@
       if (mixedMatch) {
         const entero = parseFloat(mixedMatch[1]);
         const fraccionPartes = mixedMatch[2].split('/');
-        if (fraccionPartes.length === 2) {
-          return entero + (parseFloat(fraccionPartes[0]) / parseFloat(fraccionPartes[1]));
-        }
+        if (fraccionPartes.length === 2) return entero + (parseFloat(fraccionPartes[0]) / parseFloat(fraccionPartes[1]));
       }
-
       if (valor.includes('/')) {
         const partes = valor.split('/');
-        if (partes.length === 2) {
-          return parseFloat(partes[0]) / parseFloat(partes[1]);
-        }
+        if (partes.length === 2) return parseFloat(partes[0]) / parseFloat(partes[1]);
       }
       return 0; 
     }
 
-    // Manejo de Filas y Numeración
+    // =====================================
+    // LÓGICA DE TABLAS / INVENTARIO DE MADERA
+    // =====================================
     function agregarFila(datos = null) {
       const tbody = document.getElementById("filas-madera");
       const tr = document.createElement("tr");
       
-      const largoVal = datos ? datos.largo : "";
-      const anchoVal = datos ? datos.ancho : "";
-      const grosorVal = datos ? datos.grosor : "";
-      const cantVal = datos ? datos.cantidad : "1";
-
       tr.innerHTML = `
         <td class="p-2 text-center font-bold text-slate-400 num-fila"></td>
-        <td class="p-2"><input type="text" class="largo border rounded p-1.5 w-full text-center" value="${largoVal}" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="text" class="ancho border rounded p-1.5 w-full text-center" value="${anchoVal}" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="text" class="grosor border rounded p-1.5 w-full text-center" value="${grosorVal}" oninput="calcularTotales()"></td>
-        <td class="p-2"><input type="number" step="1" min="1" class="cantidad border rounded p-1.5 w-full text-center" value="${cantVal}" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="text" class="largo border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.largo : ''}" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="text" class="ancho border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.ancho : ''}" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="text" class="grosor border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.grosor : ''}" oninput="calcularTotales()"></td>
+        <td class="p-2"><input type="number" step="1" min="1" class="cantidad border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.cantidad : '1'}" oninput="calcularTotales()"></td>
         <td class="p-2 font-medium text-slate-600 pies-unitarios text-center">0.00</td>
         <td class="p-2 font-bold text-amber-800 pies-subtotal text-center">0.00</td>
         <td class="p-2 text-center"><button onclick="eliminarFila(this)" class="text-rose-500 font-bold hover:bg-rose-100 px-2 rounded">✕</button></td>
@@ -175,112 +208,184 @@
     }
 
     function eliminarFila(btn) {
-      const tbody = document.getElementById("filas-madera");
-      if (tbody.children.length > 1) {
+      if (document.getElementById("filas-madera").children.length > 1) {
         btn.closest("tr").remove();
         actualizarNumeracion();
         calcularTotales();
-      } else {
-        alert("Debe existir al menos una tabla.");
-      }
+      } else alert("Debe existir al menos una tabla.");
     }
 
     function actualizarNumeracion() {
-      const filas = document.querySelectorAll("#filas-madera tr");
-      filas.forEach((fila, index) => {
+      document.querySelectorAll("#filas-madera tr").forEach((fila, index) => {
         fila.querySelector(".num-fila").textContent = index + 1;
       });
     }
 
+    // CALCULA Y CONVIERTE UNIDADES
     function calcularTotales() {
-      const filas = document.querySelectorAll("#filas-madera tr");
       let grandTotal = 0;
+      
+      const uLargo = document.getElementById("unidad-largo").value;
+      const uAncho = document.getElementById("unidad-ancho").value;
+      const uGrosor = document.getElementById("unidad-grosor").value;
 
-      filas.forEach(fila => {
-        const largo = procesarFraccion(fila.querySelector(".largo").value);
-        const ancho = procesarFraccion(fila.querySelector(".ancho").value);
-        const grosor = procesarFraccion(fila.querySelector(".grosor").value);
+      document.querySelectorAll("#filas-madera tr").forEach(fila => {
+        let lVal = procesarFraccion(fila.querySelector(".largo").value);
+        let aVal = procesarFraccion(fila.querySelector(".ancho").value);
+        let gVal = procesarFraccion(fila.querySelector(".grosor").value);
         const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
 
-        const piesUnitarios = (grosor * ancho * largo) / 12;
+        // Conversiones (La fórmula PT estándar necesita: Pies para Largo, Pulgadas para Ancho y Grosor)
+        let largoFt = (uLargo === 'cm') ? lVal / 30.48 : lVal;
+        let anchoIn = (uAncho === 'cm') ? aVal / 2.54 : aVal;
+        let grosorIn = (uGrosor === 'cm') ? gVal / 2.54 : gVal;
+
+        const piesUnitarios = (grosorIn * anchoIn * largoFt) / 12;
         const subtotalPies = piesUnitarios * cantidad;
+
+        // Guardamos el grosor en Pulgadas en la fila de forma invisible para que la sección de muebles funcione correctamente siempre.
+        fila.dataset.grosorIn = grosorIn.toFixed(4);
 
         fila.querySelector(".pies-unitarios").textContent = piesUnitarios.toFixed(2);
         fila.querySelector(".pies-subtotal").textContent = subtotalPies.toFixed(2);
         grandTotal += subtotalPies;
       });
-
+      
       document.getElementById("total-general").textContent = grandTotal.toFixed(2) + " PT";
-      calcularMueble(); // Recalcular mueble si cambia la madera
+      calcularMueble(); // Recalcular muebles basados en inventario actualizado
     }
 
-    // LÓGICA DE MUEBLES
+    // =====================================
+    // LÓGICA DE COMPONENTES DEL MUEBLE
+    // =====================================
+    function agregarFilaMueble(datos = null) {
+      const tbody = document.getElementById("filas-req-mueble");
+      const tr = document.createElement("tr");
+      
+      tr.innerHTML = `
+        <td class="p-2"><input type="text" placeholder="Ej: 1 1/2" class="req-grosor border border-blue-200 rounded p-2 w-full text-center focus:ring-1 focus:ring-blue-500" value="${datos ? datos.grosor : ''}" oninput="calcularMueble()"></td>
+        <td class="p-2"><input type="number" step="0.1" placeholder="Ej: 4.5" class="req-pt border border-blue-200 rounded p-2 w-full text-center focus:ring-1 focus:ring-blue-500" value="${datos ? datos.pt : ''}" oninput="calcularMueble()"></td>
+        <td class="p-2 text-center"><button onclick="eliminarFilaMueble(this)" class="text-rose-500 font-bold px-2 py-1 hover:bg-rose-100 rounded">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+      if(datos) calcularMueble();
+    }
+
+    function eliminarFilaMueble(btn) {
+      btn.closest("tr").remove();
+      calcularMueble();
+    }
+
     function calcularMueble() {
       const nombre = document.getElementById("mueble-nombre").value || "Mueble";
-      const grosorReqTexto = document.getElementById("mueble-grosor").value;
-      const ptReq = parseFloat(document.getElementById("mueble-pt").value) || 0;
       const divRes = document.getElementById("resultado-mueble");
+      const filasReq = document.querySelectorAll("#filas-req-mueble tr");
 
-      const grosorReq = procesarFraccion(grosorReqTexto);
+      let agrupacionReqs = {}; 
+      let hasReqs = false;
 
-      if(grosorReq <= 0 || ptReq <= 0) {
+      // 1. Requerimientos
+      filasReq.forEach(fila => {
+        const grosorStr = fila.querySelector(".req-grosor").value;
+        const grosor = procesarFraccion(grosorStr); // Asumimos que los requerimientos del mueble se anotan en pulgadas
+        const pt = parseFloat(fila.querySelector(".req-pt").value) || 0;
+
+        if (grosor > 0 && pt > 0) {
+          hasReqs = true;
+          if (!agrupacionReqs[grosor]) agrupacionReqs[grosor] = { str: grosorStr, ptTotal: 0 };
+          agrupacionReqs[grosor].ptTotal += pt;
+        }
+      });
+
+      if (!hasReqs) {
         divRes.classList.add("hidden");
         infoMuebleGuardar = null;
         return;
       }
 
-      let ptExacto = 0, ptGrueso = 0, ptDelgado = 0;
-      const filas = document.querySelectorAll("#filas-madera tr");
-
-      filas.forEach(fila => {
-        const grosorTabla = procesarFraccion(fila.querySelector(".grosor").value);
+      // 2. Extraer Inventario de Madera (Leemos la variable invisible ya estandarizada en pulgadas)
+      let inventario = [];
+      document.querySelectorAll("#filas-madera tr").forEach(fila => {
+        const grosor = parseFloat(fila.dataset.grosorIn) || 0; 
         const subtotal = parseFloat(fila.querySelector(".pies-subtotal").textContent);
-
-        if(subtotal > 0 && grosorTabla > 0) {
-          if (Math.abs(grosorTabla - grosorReq) < 0.01) ptExacto += subtotal; // Margen de error decimal
-          else if (grosorTabla > grosorReq) ptGrueso += subtotal;
-          else if (grosorTabla < grosorReq) ptDelgado += subtotal;
-        }
+        if (grosor > 0 && subtotal > 0) inventario.push({ grosor, subtotal });
       });
 
-      const totalUsable = ptExacto + ptGrueso + ptDelgado;
-      const piezas = Math.floor(totalUsable / ptReq);
+      // 3. Analizar disponibilidad
+      let mueblesPosiblesArray = [];
+      let detalleHTML = `<ul class="list-disc pl-5 space-y-3 mt-4 text-sm text-slate-700">`;
+      let reqGuardar = [];
 
-      divRes.classList.remove("hidden", "bg-emerald-100", "bg-rose-100");
-      
-      let htmlMsj = `<h4 class="font-bold text-lg mb-2">Resultado: Puedes fabricar <span class="text-2xl">${piezas}</span> pieza(s) de ${nombre}.</h4><ul class="list-disc pl-5 space-y-1">`;
-      
-      if(ptExacto > 0) htmlMsj += `<li><b class="text-emerald-700">Perfecto:</b> Tienes <b>${ptExacto.toFixed(2)} PT</b> con el grosor exacto solicitado.</li>`;
-      if(ptGrueso > 0) htmlMsj += `<li><b class="text-amber-600">Para Cepillar:</b> Tienes <b>${ptGrueso.toFixed(2)} PT</b> en tablas más gruesas (se rebajarán).</li>`;
-      if(ptDelgado > 0) htmlMsj += `<li><b class="text-blue-600">Para Unir/Laminar:</b> Tienes <b>${ptDelgado.toFixed(2)} PT</b> en tablas más delgadas.</li>`;
-      if(totalUsable === 0) htmlMsj += `<li>No hay madera ingresada en el proyecto para realizar esto.</li>`;
-      htmlMsj += `</ul>`;
+      for (let gReqNum in agrupacionReqs) {
+        const req = agrupacionReqs[gReqNum];
+        const grosorReq = parseFloat(gReqNum);
+        
+        let ptExacto = 0, ptGrueso = 0, ptDelgado = 0;
 
-      // Estilo de caja según el resultado
-      if(piezas > 0) divRes.classList.add("bg-emerald-100", "text-emerald-900", "border", "border-emerald-300");
-      else divRes.classList.add("bg-rose-50", "text-rose-900", "border", "border-rose-300");
+        inventario.forEach(inv => {
+          if (Math.abs(inv.grosor - grosorReq) < 0.05) ptExacto += inv.subtotal; 
+          else if (inv.grosor > grosorReq) ptGrueso += inv.subtotal;
+          else if (inv.grosor < grosorReq) ptDelgado += inv.subtotal;
+        });
 
-      divRes.innerHTML = htmlMsj;
+        const totalUsable = ptExacto + ptGrueso + ptDelgado;
+        const posiblesParaEsteGrosor = Math.floor(totalUsable / req.ptTotal);
+        
+        mueblesPosiblesArray.push(posiblesParaEsteGrosor);
 
-      // Guardar el estado para Sheets
+        detalleHTML += `<li>
+          <b>Componentes de ${req.str}" (Req. ${req.ptTotal} PT):</b> Alcanza para <b>${posiblesParaEsteGrosor}</b> mueble(s).
+          <div class="text-xs text-slate-500 mt-1 bg-white/50 p-2 rounded inline-block">
+            Madera disponible: ${ptExacto.toFixed(1)} PT Exactos | ${ptGrueso.toFixed(1)} PT para cepillar | ${ptDelgado.toFixed(1)} PT para laminar.
+          </div>
+        </li>`;
+
+        reqGuardar.push({ grosor: req.str, pt: req.ptTotal, posibles: posiblesParaEsteGrosor });
+      }
+      detalleHTML += `</ul>`;
+
+      const mueblesCompletos = Math.min(...mueblesPosiblesArray);
+
+      divRes.classList.remove("hidden", "bg-emerald-50", "bg-rose-50", "bg-amber-50");
+      let tituloHTML = `<h4 class="font-bold text-lg mb-2 pb-2 border-b border-black/10">
+        Resultado Final: Puedes armar <span class="text-2xl">${mueblesCompletos}</span> ${nombre}(s) completos.
+      </h4>`;
+
+      if (mueblesCompletos > 0) divRes.classList.add("bg-emerald-50", "text-emerald-900", "border", "border-emerald-200");
+      else divRes.classList.add("bg-rose-50", "text-rose-900", "border", "border-rose-200");
+
+      divRes.innerHTML = tituloHTML + detalleHTML;
+
       infoMuebleGuardar = {
-        nombre: nombre, grosorReq: grosorReqTexto, ptReq: ptReq, piezas: piezas,
-        notas: `Ex:${ptExacto.toFixed(1)} / Gr:${ptGrueso.toFixed(1)} / Delg:${ptDelgado.toFixed(1)}`
+        nombre: nombre,
+        piezas: mueblesCompletos,
+        requisitos: reqGuardar,
+        notas: `Requiere ${reqGuardar.length} grosores dist.`
       };
     }
 
-    // GUARDAR Y LIMPIAR
+    // =====================================
+    // GUARDADO Y CONSULTA
+    // =====================================
     function limpiarFormulario() {
       proyectoActualId = null;
       document.getElementById("badge-edicion").classList.add("hidden");
       document.getElementById("titulo").value = "";
       document.getElementById("mueble-nombre").value = "";
-      document.getElementById("mueble-grosor").value = "";
-      document.getElementById("mueble-pt").value = "";
       document.getElementById("resultado-mueble").classList.add("hidden");
+      
+      // Reiniciar Selectores de unidad a métrica imperial por defecto
+      document.getElementById("unidad-largo").value = 'ft';
+      document.getElementById("unidad-ancho").value = 'in';
+      document.getElementById("unidad-grosor").value = 'in';
+
       document.getElementById("filas-madera").innerHTML = "";
+      document.getElementById("filas-req-mueble").innerHTML = "";
+      
       infoMuebleGuardar = null;
       agregarFila();
+      agregarFilaMueble();
+      calcularTotales();
     }
 
     async function guardarEnSheets() {
@@ -295,23 +400,25 @@
         const anchoStr = fila.querySelector(".ancho").value;
         const grosorStr = fila.querySelector(".grosor").value;
         const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
-        const piesPorTabla = parseFloat(fila.querySelector(".pies-unitarios").textContent);
-        const subtotalPies = parseFloat(fila.querySelector(".pies-subtotal").textContent);
+        const pt = parseFloat(fila.querySelector(".pies-unitarios").textContent);
+        const spt = parseFloat(fila.querySelector(".pies-subtotal").textContent);
 
         if (procesarFraccion(largoStr) > 0 && cantidad > 0) {
-          items.push({ largo: largoStr, ancho: anchoStr, grosor: grosorStr, cantidad, piesPorTabla, subtotalPies });
+          items.push({ largo: largoStr, ancho: anchoStr, grosor: grosorStr, cantidad, piesPorTabla: pt, subtotalPies: spt });
         }
       });
 
-      if (items.length === 0) return alert("Ingresa al menos una medida válida antes de guardar.");
-
-      // Generar ID único cliente si es un proyecto nuevo
-      const idEnvio = proyectoActualId || "PRJ-" + new Date().getTime();
+      if (items.length === 0) return alert("Ingresa al menos una medida de madera válida antes de guardar.");
 
       const payload = {
-        id: idEnvio,
+        id: proyectoActualId || "PRJ-" + new Date().getTime(),
         titulo: titulo,
         totalGeneral: parseFloat(document.getElementById("total-general").textContent),
+        unidades: {
+          largo: document.getElementById("unidad-largo").value,
+          ancho: document.getElementById("unidad-ancho").value,
+          grosor: document.getElementById("unidad-grosor").value
+        },
         filas: items,
         mueble: infoMuebleGuardar
       };
@@ -321,11 +428,10 @@
         alert("✅ Proyecto Guardado/Actualizado con éxito.");
         limpiarFormulario();
       } catch (error) {
-        alert("❌ Error al guardar. Revisa la consola.");
+        alert("❌ Error al guardar.");
       }
     }
 
-    // CONSULTAR Y EDITAR (CARGAR)
     async function consultarHistorial() {
       const modal = document.getElementById("modal-historial");
       const loading = document.getElementById("loading-historial");
@@ -347,61 +453,61 @@
         hContainer.innerHTML = ""; bContainer.innerHTML = "";
 
         if (data.data.length === 0) {
-          bContainer.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No hay proyectos guardados.</td></tr>`;
+          bContainer.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No hay proyectos.</td></tr>`;
           return;
         }
 
-        data.headers.forEach(h => { hContainer.innerHTML += `<th class="p-3">${h}</th>`; });
+        data.headers.forEach(h => hContainer.innerHTML += `<th class="p-3">${h}</th>`);
 
         data.data.forEach(row => {
-          // La columna 5 es el JSON Data oculto
           const jsonSeguro = row[5] ? row[5].replace(/'/g, "&#39;") : ""; 
-          
-          let tr = `<tr class="hover:bg-slate-50">
+          let tr = `<tr class="hover:bg-slate-50 border-b border-slate-100">
             <td class="p-3 font-mono text-xs text-slate-500">${row[0]}</td>
-            <td class="p-3 whitespace-nowrap">${row[1]}</td>
+            <td class="p-3 whitespace-nowrap text-xs">${row[1]}</td>
             <td class="p-3 font-bold text-slate-700">${row[2]}</td>
             <td class="p-3 font-bold text-amber-700">${row[3]} PT</td>
             <td class="p-3 text-xs text-slate-600">${row[4]}</td>
-            <td class="p-3">
-              <button onclick='cargarProyecto(\`${jsonSeguro}\`)' class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-sm font-medium transition shadow-sm flex items-center gap-1">
-                ✏️ Ver / Editar
+            <td class="p-3 text-center">
+              <button onclick='cargarProyecto(\`${jsonSeguro}\`)' class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-sm font-medium transition shadow-sm">
+                ✏️ Editar
               </button>
             </td>
           </tr>`;
           bContainer.innerHTML += tr;
         });
-
       } catch (error) {
-        loading.textContent = "Error al cargar la información. Revisa tu URL.";
+        loading.textContent = "Error al cargar. Revisa tu URL de Apps Script.";
       }
     }
 
     function cargarProyecto(jsonStr) {
-      if(!jsonStr) return alert("Error: No se encontraron datos para este proyecto.");
+      if(!jsonStr) return alert("Error de lectura de datos.");
       const data = JSON.parse(jsonStr);
       
       proyectoActualId = data.id;
       document.getElementById("badge-edicion").classList.remove("hidden");
       document.getElementById("titulo").value = data.titulo;
 
-      // Cargar tablas
-      document.getElementById("filas-madera").innerHTML = "";
-      data.filas.forEach(f => agregarFila(f));
-      actualizarNumeracion();
-
-      // Cargar Mueble
-      if(data.mueble) {
-        document.getElementById("mueble-nombre").value = data.mueble.nombre || "";
-        document.getElementById("mueble-grosor").value = data.mueble.grosorReq || "";
-        document.getElementById("mueble-pt").value = data.mueble.ptReq || "";
-      } else {
-        document.getElementById("mueble-nombre").value = "";
-        document.getElementById("mueble-grosor").value = "";
-        document.getElementById("mueble-pt").value = "";
+      // Restaurar las unidades de medida si existían al guardar
+      if (data.unidades) {
+        document.getElementById("unidad-largo").value = data.unidades.largo || 'ft';
+        document.getElementById("unidad-ancho").value = data.unidades.ancho || 'in';
+        document.getElementById("unidad-grosor").value = data.unidades.grosor || 'in';
       }
 
-      calcularTotales(); // Esto dispara también la función calcularMueble()
+      document.getElementById("filas-madera").innerHTML = "";
+      data.filas.forEach(f => agregarFila(f));
+
+      document.getElementById("filas-req-mueble").innerHTML = "";
+      if (data.mueble && data.mueble.requisitos && data.mueble.requisitos.length > 0) {
+        document.getElementById("mueble-nombre").value = data.mueble.nombre || "";
+        data.mueble.requisitos.forEach(r => agregarFilaMueble({ grosor: r.grosor, pt: r.pt }));
+      } else {
+        document.getElementById("mueble-nombre").value = "";
+        agregarFilaMueble();
+      }
+
+      calcularTotales(); 
       cerrarHistorial();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
