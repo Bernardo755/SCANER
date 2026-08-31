@@ -1,35 +1,171 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicación Unificada por Pestañas</title>
-    <!-- Librerías globales comunes (Bootstrap y SheetJS) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <style>
-        body { background-color: #f8f9fa; padding: 2rem; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema Multi-Herramienta</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #e2e8f0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* Barra de Pestañas Superior */
+    .tab-bar { display: flex; background: #0f172a; padding: 10px 20px 0 20px; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 1000; }
+    .tab-btn { background: #1e293b; color: #94a3b8; border: none; padding: 10px 20px; font-size: 14px; font-weight: 600; border-top-left-radius: 8px; border-top-right-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .tab-btn:hover { background: #334155; color: #f8fafc; }
+    .tab-btn.active { background: #f1f5f9; color: #0f172a; }
+
+    /* Contenedor de las Ventanas */
+    .window-container { flex-grow: 1; position: relative; overflow: hidden; }
+    .app-window { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; background: #f1f5f9; overflow-y: auto; padding: 20px; }
+    .app-window.active { display: block; }
+
+   
+  </style>
 </head>
 <body>
 
-<div class="container" style="max-width: 900px;">
-    <!-- Barra de Pestañas -->
-    <ul class="nav nav-tabs mb-4" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">Herramienta 1</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">Herramienta 2</button>
-        </li>
-    </ul>
+  <!-- Barra de Pestañas -->
+  <div class="tab-bar">
 
-    <div class="tab-content">
-        <!-- PESTAÑA 1 -->
-        <div class="tab-pane fade show active" id="tab1" role="tabpanel">
-            <div class="card p-4">
+    <button class="tab-btn active" onclick="switchTab('tab1', event)">COMPARADOR</button>
+    <button class="tab-btn" onclick="switchTab('tab2', event)">COMBINADOR PARA CURP</button>
+  </div>
+
+  <!-- Contenedor de Aplicaciones -->
+  <div class="window-container">
+    
+    <!-- PESTAÑA 1: Optimizador de Cortes Pro -->
+    <div id="tab2" class="app-window">
+      <div class="container">
+        <!-- Panel Lateral -->
+        <div class="sidebar">
+          <h2>COMPARADOR</h2>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <style>
+          
+ /* Estilos internos adaptados del Optimizador de Cortes */
+    .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
+    .sidebar { width: 320px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0; }
+    h2 { font-size: 16px; margin-bottom: 12px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+    .group { margin-bottom: 12px; }
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #475569; }
+    input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+    input:focus { outline: none; border-color: #2563eb; }
+    .row { display: flex; gap: 10px; }
+    button.action-btn { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+    button.action-btn:hover { background: #1d4ed8; }
+    button.clear { background: #ef4444; margin-top: 8px; }
+    button.clear:hover { background: #dc2626; }
+    
+    .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 15px; }
+    .summary-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #334155; }
+    
+    .main-area { flex-grow: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .instructions { font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 4px solid #2563eb; }
+    
+    .board-container { width: 100%; height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; overflow: hidden; position: relative; }
+    .canvas-overlay { position: absolute; top: 10px; left: 10px; background: rgba(15, 23, 42, 0.85); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; z-index: 10; pointer-events: none; }
+    .canvas-overlay strong { color: #38bdf8; }
+
+    .board { background: #e2e8f0; border: 2px solid #94a3b8; position: relative; transform-origin: center; }
+    .bounding-box-guide { position: absolute; border: 2px dashed #f59e0b; background: rgba(245, 158, 11, 0.08); pointer-events: none; display: none; }
+
+    .piece { position: absolute; color: white; border: 1px solid rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; text-align: center; cursor: move; user-select: none; border-radius: 3px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+    .piece:hover { filter: brightness(1.08); }
+    .piece span { pointer-events: none; }
+          </style>
+</head>
+<body>
+          <div class="group row">
+            <div>
+              <label>Ancho (mm)</label>
+              <input type="number" id="board-w" value="2440" oninput="updateBoard()">
+            </div>
+            <div>
+              <label>Alto (mm)</label>
+              <input type="number" id="board-h" value="1220" oninput="updateBoard()">
+            </div>
+          </div>
+          
+          <div class="group">
+            <label>Grosor del disco / Margen (mm)</label>
+            <input type="number" id="kerf" value="3" oninput="updateBoard()">
+          </div>
+
+          <h2>2. Agregar Piezas</h2>
+          <div class="group">
+            <label>Etiqueta / Nombre</label>
+            <input type="text" id="piece-name" placeholder="Ej: Estante">
+          </div>
+          <div class="group row">
+            <div>
+              <label>Ancho (mm)</label>
+              <input type="number" id="piece-w" value="600">
+            </div>
+            <div>
+              <label>Alto (mm)</label>
+              <input type="number" id="piece-h" value="400">
+            </div>
+          </div>
+          <div class="group">
+            <label>Cantidad</label>
+            <input type="number" id="piece-qty" value="1" min="1">
+          </div>
+          <button class="action-btn" onclick="addPieces()">+ Agregar Piezas</button>
+          <button class="action-btn clear" onclick="clearPieces()">Limpiar Piezas</button>
+
+          <h2>3. Resumen</h2>
+          <div class="summary-card">
+            <div class="summary-item">
+              <span>Piezas totales:</span>
+              <strong id="stat-count">0</strong>
+            </div>
+            <div class="summary-item">
+              <span>Área neta piezas:</span>
+              <strong id="stat-area-pieces">0.00 m²</strong>
+            </div>
+            <div class="summary-item">
+              <span>Aprovechamiento:</span>
+              <strong id="stat-usage">0%</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área de Trabajo -->
+        <div class="main-area">
+          <div class="instructions">
+            💡 <strong>Novedad:</strong> Las piezas cambian de color por paquete y <strong>no se pueden encimar</strong> respetando el margen de corte. Revisa las medidas del área usada arriba a la izquierda.
+          </div>
+          <div class="board-container" id="board-container">
+            <div class="canvas-overlay">
+              📏 Tablero Base: <strong id="overlay-board-dim">0 x 0 mm</strong> | 
+              ✂️ Placa Utilizada: <strong id="overlay-used-dim">0 x 0 mm</strong>
+            </div>
+            <div class="board" id="board">
+              <div class="bounding-box-guide" id="bounding-box-guide"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+  
+    <!-- PESTAÑA 2: Aquí puedes colocar tu otro código -->
+    <div id="tab1" class="app-window active">
+      <div class="main-area" style="max-width: 1200px; margin: 0 auto;">
+        <h2>COMPARADOR</h2>
+        <div class="instructions" style="margin-top: 15px;">
+ <!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -147,116 +283,7 @@
         <button class="btn btn-danger" id="resetBtn" style="display: none;" onclick="resetApp()">🗑️ Limpiar y Reiniciar</button>
     </div>
 </div>
-      
-            </div>
-        </div>
 
-        
-
-        <!-- PESTAÑA 2 -->
-        <div class="tab-pane fade" id="tab2" role="tabpanel">
-            <div class="card p-4">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Oficial de Letras CURP desde Excel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <style>
-        body { background-color: #f8f9fa; padding: 2rem; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="card p-4 mx-auto" style="max-width: 800px;">
-        <h2 class="mb-4 text-center">Extractor Oficial de Letras CURP</h2>
-        <div class="alert alert-info">
-            Herramienta configurada con dos pasos: primero procesa los datos aplicando las reglas de RENAPO y después descárgalos.
-        </div>
-        
-        <div class="mb-3">
-            <label class="form-label fw-bold">1. Selecciona el archivo (Excel o CSV):</label>
-            <input type="file" class="form-control" id="fileInput" accept=".xlsx, .xls, .csv">
-        </div>
-
-        <div id="sheetConfig" class="hidden">
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <label class="form-label fw-bold">2. Selecciona la Hoja de Trabajo:</label>
-                    <select class="form-select" id="sheetSelect"></select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Fila de encabezados:</label>
-                    <input type="number" class="form-control" id="headerRow" value="1" min="1">
-                </div>
-            </div>
-            <button class="btn btn-secondary w-100 mb-4" onclick="loadHeaders()">Cargar Encabezados</button>
-        </div>
-
-        <div id="columnMapping" class="hidden">
-            <h5 class="fw-bold">3. Configuración de Columnas</h5>
-            
-            <div class="mb-3">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="colType" id="colSeparate" value="separate" checked onchange="toggleColType()">
-                    <label class="form-check-label" for="colSeparate">Columnas Separadas</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="colType" id="colSingle" value="single" onchange="toggleColType()">
-                    <label class="form-check-label" for="colSingle">Una Sola Columna (Nombre Completo)</label>
-                </div>
-            </div>
-
-            <div id="separateCols" class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Nombre(s):</label>
-                    <select class="form-select col-select" id="colNombre"></select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Apellido Paterno:</label>
-                    <select class="form-select col-select" id="colPaterno"></select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Apellido Materno:</label>
-                    <select class="form-select col-select" id="colMaterno"></select>
-                </div>
-            </div>
-
-            <div id="singleCol" class="hidden row">
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">Columna Nombre Completo (Nombres ApellidoP ApellidoM):</label>
-                    <select class="form-select col-select" id="colCompleto"></select>
-                </div>
-            </div>
-
-            <!-- Botones separados -->
-            <button class="btn btn-primary w-100 mt-3" onclick="processData()">1. Procesar Datos</button>
-            <div id="successMsg" class="alert alert-success mt-3 hidden text-center" role="alert">¡Datos procesados correctamente! Ya puedes descargarlos.</div>
-            <button class="btn btn-success w-100 mt-2 hidden" id="btnDownload" onclick="downloadFile()">2. Descargar Archivo Modificado</button>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-                
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Bootstrap JS (Necesario para el funcionamiento de las pestañas) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- SCRIPTS DE CADA HERRAMIENTA -->
-    
-     
-<script>
 <script>
     // Variables globales
     let convertedCSVBlobs = { base: null, comp: null };
@@ -682,15 +709,99 @@
     }
 </script>
 
-</script>
+    
+  
+<!-- PESTAÑA 3: Tu nuevo código -->
+    <div id="tab2" class="app-window">
+      <div class="main-area" style="max-width: 1200px; margin: 0 auto;">
+        <h2>COMBINACION PARA CURP CON NOMBRES</h2>
 
-<script>
+  <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Oficial de Letras CURP desde Excel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body { background-color: #f8f9fa; padding: 2rem; }
+        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
 
-     // SCRIPT DE LA HERRAMIENTA 2
+<div class="container">
+    <div class="card p-4 mx-auto" style="max-width: 800px;">
+        <h2 class="mb-4 text-center">Extractor Oficial de Letras CURP</h2>
+        <div class="alert alert-info">
+            Herramienta configurada para convertir automáticamente cualquier letra <strong>Ñ en X</strong> siguiendo los lineamientos de procesamiento de RENAPO.
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">1. Selecciona el archivo (Excel o CSV):</label>
+            <input type="file" class="form-control" id="fileInput" accept=".xlsx, .xls, .csv">
+        </div>
+
+        <div id="sheetConfig" class="hidden">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">2. Selecciona la Hoja de Trabajo:</label>
+                    <select class="form-select" id="sheetSelect"></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fila de encabezados:</label>
+                    <input type="number" class="form-control" id="headerRow" value="1" min="1">
+                </div>
+            </div>
+            <button class="btn btn-secondary w-100 mb-4" onclick="loadHeaders()">Cargar Encabezados</button>
+        </div>
+
+        <div id="columnMapping" class="hidden">
+            <h5 class="fw-bold">3. Configuración de Columnas</h5>
+            
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="colType" id="colSeparate" value="separate" checked onchange="toggleColType()">
+                    <label class="form-check-label" for="colSeparate">Columnas Separadas</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="colType" id="colSingle" value="single" onchange="toggleColType()">
+                    <label class="form-check-label" for="colSingle">Una Sola Columna (Nombre Completo)</label>
+                </div>
+            </div>
+
+            <div id="separateCols" class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Nombre(s):</label>
+                    <select class="form-select col-select" id="colNombre"></select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Apellido Paterno:</label>
+                    <select class="form-select col-select" id="colPaterno"></select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Apellido Materno:</label>
+                    <select class="form-select col-select" id="colMaterno"></select>
+                </div>
+            </div>
+
+            <div id="singleCol" class="hidden row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Columna Nombre Completo (Nombres ApellidoP ApellidoM):</label>
+                    <select class="form-select col-select" id="colCompleto"></select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" onclick="processAndDownload()">Procesar y Descargar Archivo</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let workbook = null;
     let currentData = [];
-    let isProcessed = false;
 
     const stopwords = ['DA','DAS','DE','DEL','DER','DI','DIE','DD','EL','LA','LOS','LAS','LE','LES','MAC','MC','VAN','VON','Y'];
     const excludesNames = ['JOSE', 'MARIA', 'MA', 'MA.', 'J', 'J.', 'SANTO', 'SANTA'];
@@ -717,9 +828,6 @@
             });
             
             document.getElementById('sheetConfig').classList.remove('hidden');
-            document.getElementById('btnDownload').classList.add('hidden');
-            document.getElementById('successMsg').classList.add('hidden');
-            isProcessed = false;
         };
         reader.readAsArrayBuffer(file);
     });
@@ -747,9 +855,6 @@
         });
 
         document.getElementById('columnMapping').classList.remove('hidden');
-        document.getElementById('btnDownload').classList.add('hidden');
-        document.getElementById('successMsg').classList.add('hidden');
-        isProcessed = false;
     }
 
     function toggleColType() {
@@ -761,9 +866,9 @@
     function cleanString(str) {
         if (!str) return "";
         return str.toString().trim().toUpperCase()
-            .replace(/Ñ/g, "X") 
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
-            .replace(/[^A-Z ]/g, ""); 
+            .replace(/Ñ/g, "X") // Convertir Ñ a X antes de cualquier otro filtro
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+            .replace(/[^A-Z ]/g, ""); // Limpiar símbolos especiales
     }
 
     function getValidTokens(str) {
@@ -828,7 +933,7 @@
         return "XXXXXXX";
     }
 
-    function processData() {
+    function processAndDownload() {
         const isSeparate = document.getElementById('colSeparate').checked;
         const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
         
@@ -870,47 +975,18 @@
             row[newColIdx] = curpLetters;
         }
 
-        isProcessed = true;
-        document.getElementById('btnDownload').classList.remove('hidden');
-        document.getElementById('successMsg').classList.remove('hidden');
-    }
-
-    function downloadFile() {
-        if (!isProcessed) return alert("Primero debes procesar los datos.");
         const newSheet = XLSX.utils.aoa_to_sheet(currentData);
         const newWorkbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Procesado");
+        
         XLSX.writeFile(newWorkbook, "Datos_CURP_Procesados.xlsx");
     }
-</script>
-
 </script>
 </body>
 </html>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+</body>
+</html>
 
 
 
