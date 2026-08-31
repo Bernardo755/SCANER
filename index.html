@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Raíz CURP desde Excel</title>
+    <title>Generador de Letras CURP desde Excel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Librería SheetJS para leer y escribir Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -17,7 +17,10 @@
 
 <div class="container">
     <div class="card p-4 mx-auto" style="max-width: 800px;">
-        <h2 class="mb-4 text-center">Procesador de Nombres para CURP</h2>
+        <h2 class="mb-4 text-center">Extractor de Letras para CURP</h2>
+        <div class="alert alert-info">
+            Esta herramienta extrae las <strong>4 letras iniciales</strong> y las <strong>3 consonantes internas</strong> en una sola cadena continua (ej. <code>ROZLDPS</code>).
+        </div>
         
         <!-- 1. Carga de Archivo -->
         <div class="mb-3">
@@ -74,7 +77,7 @@
             <!-- Simple -->
             <div id="singleCol" class="hidden row">
                 <div class="col-md-12 mb-3">
-                    <label class="form-label">Columna Nombre Completo (Formato: Nombres ApellidoP ApellidoM):</label>
+                    <label class="form-label">Columna Nombre Completo (Nombres ApellidoP ApellidoM):</label>
                     <select class="form-select col-select" id="colCompleto"></select>
                 </div>
             </div>
@@ -88,7 +91,6 @@
     let workbook = null;
     let currentData = [];
 
-    // Palabras a ignorar en nombres compuestos según SEGOB
     const stopwords = ['DA','DAS','DE','DEL','DER','DI','DIE','DD','EL','LA','LOS','LAS','LE','LES','MAC','MC','VAN','VON','Y'];
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
@@ -116,7 +118,6 @@
         const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
         
         const worksheet = workbook.Sheets[sheetName];
-        // Leer como array de arrays
         currentData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
         
         if(currentData.length <= headerRowIdx) {
@@ -143,75 +144,72 @@
         document.getElementById('singleCol').classList.toggle('hidden', isSeparate);
     }
 
-    // --- LÓGICA DE EXTRACCIÓN DE CURP ---
-
     function cleanString(str) {
         if (!str) return "";
         return str.toString().trim().toUpperCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
-            .replace(/[^A-ZÑ ]/g, ""); // Quitar caracteres especiales
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/Ñ/g, "X")
+            .replace(/[^A-Z ]/g, "");
     }
 
     function getValidTokens(str) {
         let parts = cleanString(str).split(/\s+/);
-        // Filtrar preposiciones y artículos
         return parts.filter(p => p && !stopwords.includes(p));
     }
 
     function getPrimeraVocalInterna(word) {
-        // Busca la primera vocal a partir de la segunda letra
         const match = word.substring(1).match(/[AEIOU]/);
         return match ? match[0] : 'X';
     }
 
-    function generateCURP4(nombres, paterno, materno) {
+    function getPrimeraConsonanteInterna(word) {
+        const match = word.substring(1).match(/[BCDFGHJKLMNPQRSTVWXYZ]/);
+        return match ? match[0] : 'X';
+    }
+
+    function generateCURPLetters(nombres, paterno, materno) {
         let nomTokens = getValidTokens(nombres);
         let patTokens = getValidTokens(paterno);
         let matTokens = getValidTokens(materno);
 
-        // 1. Apellido Paterno: Primera letra y primera vocal interna
         let pat = patTokens.length > 0 ? patTokens[0] : "X";
         let letra1 = pat.charAt(0) || 'X';
-        // Nota: El estandar de CURP usa la 1ra vocal interna. Si quieres estrictamente 
-        // las dos primeras letras, cambia esta variable a: let letra2 = pat.charAt(1) || 'X';
         let letra2 = getPrimeraVocalInterna(pat);
+        let cons1 = getPrimeraConsonanteInterna(pat);
 
-        // 2. Apellido Materno: Primera letra (o X si no tiene)
         let mat = matTokens.length > 0 ? matTokens[0] : "X";
         let letra3 = mat === "X" ? "X" : mat.charAt(0);
+        let cons2 = getPrimeraConsonanteInterna(mat);
 
-        // 3. Nombre: Filtrar María / José si hay nombres compuestos
         let nomValid = "X";
         if (nomTokens.length > 0) {
             nomValid = nomTokens[0];
             const excludes = ['JOSE', 'MARIA', 'MA', 'MA.', 'J', 'J.'];
             if (excludes.includes(nomValid) && nomTokens.length > 1) {
-                nomValid = nomTokens[1]; // Tomar el segundo nombre
+                nomValid = nomTokens[1];
             }
         }
-        let letra4 = nomValid.charAt(0);
+        let letra4 = nomValid.charAt(0) || 'X';
+        let cons3 = getPrimeraConsonanteInterna(nomValid);
 
-        return letra1 + letra2 + letra3 + letra4;
+        // Sin guion intermedio
+        return `${letra1}${letra2}${letra3}${letra4}${cons1}${cons2}${cons3}`;
     }
 
     function parseFullNameAndGenerate(fullName) {
         const tokens = getValidTokens(fullName);
-        // Heurística básica: Si hay 3 o más palabras, asumimos que los últimos dos son Paterno y Materno
         if (tokens.length >= 3) {
             let mat = tokens.pop();
             let pat = tokens.pop();
             let nom = tokens.join(" ");
-            return generateCURP4(nom, pat, mat);
+            return generateCURPLetters(nom, pat, mat);
         } else if (tokens.length === 2) {
-            // Nombre y Paterno (Sin materno)
-            return generateCURP4(tokens[0], tokens[1], "");
+            return generateCURPLetters(tokens[0], tokens[1], "");
         } else if (tokens.length === 1) {
-            return generateCURP4(tokens[0], "", "");
+            return generateCURPLetters(tokens[0], "", "");
         }
-        return "XXXX";
+        return "XXXXXXX";
     }
-
-    // --- PROCESAMIENTO DEL EXCEL ---
 
     function processAndDownload() {
         const isSeparate = document.getElementById('colSeparate').checked;
@@ -229,42 +227,33 @@
             if (cFull === -1) return alert("Selecciona la columna de Nombre Completo");
         }
 
-        // Encontrar la siguiente columna vacía general basada en el encabezado
         const newColIdx = currentData[headerRowIdx].length;
         
-        // Escribir el nuevo encabezado
-        currentData[headerRowIdx][newColIdx] = "RAIZ_CURP";
+        currentData[headerRowIdx][newColIdx] = "LETRAS_CURP";
 
-        // Iterar sobre las filas de datos
         for (let i = headerRowIdx + 1; i < currentData.length; i++) {
             let row = currentData[i];
-            // Rellenar celdas vacías si la fila es más corta
             while(row.length <= newColIdx) row.push("");
 
-            let curpRaiz = "XXXX";
+            let curpLetters = "";
 
             if (isSeparate) {
                 let n = row[cNom] || "";
                 let p = row[cPat] || "";
                 let m = (cMat !== -1) ? (row[cMat] || "") : "";
                 if (n || p) {
-                    curpRaiz = generateCURP4(n, p, m);
-                } else {
-                    curpRaiz = ""; // Fila vacía
+                    curpLetters = generateCURPLetters(n, p, m);
                 }
             } else {
                 let f = row[cFull] || "";
                 if (f) {
-                    curpRaiz = parseFullNameAndGenerate(f);
-                } else {
-                    curpRaiz = "";
+                    curpLetters = parseFullNameAndGenerate(f);
                 }
             }
 
-            row[newColIdx] = curpRaiz;
+            row[newColIdx] = curpLetters;
         }
 
-        // Crear nuevo libro y descargar
         const newSheet = XLSX.utils.aoa_to_sheet(currentData);
         const newWorkbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Procesado");
