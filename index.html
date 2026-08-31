@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador Oficial de Letras CURP desde Excel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Librería SheetJS para leer y escribir Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         body { background-color: #f8f9fa; padding: 2rem; }
@@ -19,16 +18,14 @@
     <div class="card p-4 mx-auto" style="max-width: 800px;">
         <h2 class="mb-4 text-center">Extractor Oficial de Letras CURP</h2>
         <div class="alert alert-info">
-            Esta herramienta aplica las reglas de RENAPO: exclusión de partículas, tratamiento de nombres comunes, reemplazo de <strong>Ñ por X</strong> y el filtro de <strong>palabras inconvenientes</strong> (reemplazando la vocal interna con X).
+            Herramienta configurada para convertir automáticamente cualquier letra <strong>Ñ en X</strong> siguiendo los lineamientos de procesamiento de RENAPO.
         </div>
         
-        <!-- 1. Carga de Archivo -->
         <div class="mb-3">
             <label class="form-label fw-bold">1. Selecciona el archivo (Excel o CSV):</label>
             <input type="file" class="form-control" id="fileInput" accept=".xlsx, .xls, .csv">
         </div>
 
-        <!-- 2. Configuración de Hoja y Encabezados -->
         <div id="sheetConfig" class="hidden">
             <div class="row mb-3">
                 <div class="col-md-8">
@@ -43,7 +40,6 @@
             <button class="btn btn-secondary w-100 mb-4" onclick="loadHeaders()">Cargar Encabezados</button>
         </div>
 
-        <!-- 3. Mapeo de Columnas -->
         <div id="columnMapping" class="hidden">
             <h5 class="fw-bold">3. Configuración de Columnas</h5>
             
@@ -58,7 +54,6 @@
                 </div>
             </div>
 
-            <!-- Separadas -->
             <div id="separateCols" class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Nombre(s):</label>
@@ -74,7 +69,6 @@
                 </div>
             </div>
 
-            <!-- Simple -->
             <div id="singleCol" class="hidden row">
                 <div class="col-md-12 mb-3">
                     <label class="form-label">Columna Nombre Completo (Nombres ApellidoP ApellidoM):</label>
@@ -91,13 +85,8 @@
     let workbook = null;
     let currentData = [];
 
-    // Partículas y preposiciones a ignorar según RENAPO
     const stopwords = ['DA','DAS','DE','DEL','DER','DI','DIE','DD','EL','LA','LOS','LAS','LE','LES','MAC','MC','VAN','VON','Y'];
-    
-    // Nombres comunes a omitir si hay otro nombre principal
     const excludesNames = ['JOSE', 'MARIA', 'MA', 'MA.', 'J', 'J.', 'SANTO', 'SANTA'];
-
-    // Lista oficial de palabras inconvenientes (Filtro RENAPO)
     const badWords = [
         'BACA', 'BKA', 'BUEI', 'BUEY', 'CACA', 'CACO', 'CAGA', 'CAGO', 'CAKA', 'CAKO', 
         'COGE', 'COGI', 'COGO', 'COLA', 'CULO', 'FETA', 'FEOO', 'LOCA', 'LOCO', 'LOKA', 
@@ -159,8 +148,8 @@
     function cleanString(str) {
         if (!str) return "";
         return str.toString().trim().toUpperCase()
+            .replace(/Ñ/g, "X") // Convertir Ñ a X antes de cualquier otro filtro
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
-            .replace(/Ñ/g, "X") // Reemplazo normativo de Ñ por X
             .replace(/[^A-Z ]/g, ""); // Limpiar símbolos especiales
     }
 
@@ -184,32 +173,27 @@
         let patTokens = getValidTokens(paterno);
         let matTokens = getValidTokens(materno);
 
-        // 1. Apellido Paterno
         let pat = patTokens.length > 0 ? patTokens[0] : "X";
         let letra1 = pat.charAt(0) || 'X';
         let letra2 = getPrimeraVocalInterna(pat);
         let cons1 = getPrimeraConsonanteInterna(pat);
 
-        // 2. Apellido Materno
         let mat = matTokens.length > 0 ? matTokens[0] : "X";
         let letra3 = mat === "X" ? "X" : mat.charAt(0);
         let cons2 = getPrimeraConsonanteInterna(mat);
 
-        // 3. Nombre
         let nomValid = "X";
         if (nomTokens.length > 0) {
             nomValid = nomTokens[0];
             if (excludesNames.includes(nomValid) && nomTokens.length > 1) {
-                nomValid = nomTokens[1]; // Salta el nombre auxiliar (Ej: José Luis -> Luis)
+                nomValid = nomTokens[1];
             }
         }
         let letra4 = nomValid.charAt(0) || 'X';
         let cons3 = getPrimeraConsonanteInterna(nomValid);
 
-        // --- FILTRO DE PALABRAS INCONVENIENTES ---
         let iniciales4 = `${letra1}${letra2}${letra3}${letra4}`;
         if (badWords.includes(iniciales4)) {
-            // Sustituye la primera vocal interna (letra2) por 'X'
             letra2 = 'X';
         }
 
