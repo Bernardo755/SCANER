@@ -3,6 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación Unificada por Pestañas</title>
+    <!-- Librerías globales comunes (Bootstrap y SheetJS) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body { background-color: #f8f9fa; padding: 2rem; }
+        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container" style="max-width: 900px;">
+    <!-- Barra de Pestañas -->
+    <ul class="nav nav-tabs mb-4" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tab1" type="button" role="tab">Herramienta 1</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tab2" type="button" role="tab">Herramienta 2</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- PESTAÑA 1 -->
+        <div class="tab-pane fade show active" id="tab1" role="tabpanel">
+            <div class="card p-4">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cruce de Datos Optimizado</title>
+    <!-- Librería SheetJS para conversión instantánea de Excel a CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Librería PapaParse para procesamiento streaming de CSV masivos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #217346;
+            --primary-hover: #1e6b41;
+            --bg: #f3f2f1;
+            --panel-bg: #ffffff;
+            --text: #323130;
+            --border: #edebe9;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: var(--panel-bg); padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #605e5c; margin-bottom: 25px; }
+        
+        .step { border: 1px solid var(--border); border-radius: 6px; padding: 20px; margin-bottom: 20px; background: #faf9f8; transition: opacity 0.3s; }
+        .step h3 { margin-top: 0; color: var(--primary); }
+        .step.disabled { opacity: 0.5; pointer-events: none; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px;}
+        input[type="file"], input[type="number"], select {
+            width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px;
+        }
+        
+        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background 0.2s; }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:hover { background-color: var(--primary); color: white; }
+        .btn-danger { background-color: #d13438; }
+        .btn-danger:hover { background-color: #a80000; }
+        
+        .key-pair { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .key-pair select { margin-bottom: 0; width: 100%; padding: 8px;}
+        .remove-btn { cursor: pointer; color: #d13438; font-weight: bold; font-size: 18px; border: none; background: none; }
+        
+        .checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; background: white; padding: 15px; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; }
+        .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; margin: 0; cursor: pointer;}
+        
+        #status { text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary); }
+        .action-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Cruce de Datos</h1>
+    <p class="subtitle">Realiza comparacion de dos libros optimizando columnas (Cero columnas vacías).</p>
+
+    <!-- PASO 1: Archivos, Hojas y Encabezados -->
+    <div class="step" id="step1">
+        <h3>1. Cargar Archivos, Seleccionar Hojas e Indicar Encabezados</h3>
+        <div class="grid-2">
+            <div>
+                <label>Libro Base (Al que se le agregarán datos):</label>
+                <input type="file" id="fileBase" accept=".csv, .xlsx, .xls, .xlsm, .xlsb" onchange="handleFileSelect('base')">
+                
+                <label>Seleccionar Hoja (Base):</label>
+                <select id="sheetBase" disabled onchange="convertSheetToCSV('base')">
+                    <option value="">-- Carga un archivo primero --</option>
+                </select>
+
+                <label>Fila donde están los encabezados:</label>
+                <input type="number" id="headerBase" value="1" min="1">
+            </div>
+            <div>
+                <label>Libro a Comparar (De donde se extraerán datos):</label>
+                <input type="file" id="fileComp" accept=".csv, .xlsx, .xls, .xlsm, .xlsb" onchange="handleFileSelect('comp')">
+                
+                <label>Seleccionar Hoja (A Comparar):</label>
+                <select id="sheetComp" disabled onchange="convertSheetToCSV('comp')">
+                    <option value="">-- Carga un archivo primero --</option>
+                </select>
+
+                <label>Fila donde están los encabezados:</label>
+                <input type="number" id="headerComp" value="1" min="1">
+            </div>
+        </div>
+        <button class="btn" onclick="loadHeaders()">Leer Encabezados</button>
+    </div>
+
+    <!-- PASO 2: Columnas de Coincidencia -->
+    <div class="step disabled" id="step2">
+        <h3>2. Seleccionar Columnas de Coincidencia (Llaves)</h3>
+        <p style="font-size: 14px;">Elige qué columnas deben ser idénticas en ambos libros.</p>
+        <div id="keyPairsContainer"></div>
+        <button class="btn btn-outline" onclick="addKeyPair()">+ Agregar columna de coincidencia</button>
+        <br><br>
+        <button class="btn" onclick="confirmKeys()">Confirmar Coincidencias</button>
+    </div>
+
+    <!-- PASO 3: Columnas a Extraer -->
+    <div class="step disabled" id="step3">
+        <h3>3. Seleccionar Columnas a Obtener</h3>
+        <p style="font-size: 14px;">Selecciona las columnas del "Libro a Comparar" que deseas copiar al "Libro Base".</p>
+        <div class="checkbox-group" id="extractColsContainer"></div>
+        <br>
+        <button class="btn" onclick="processData()" id="runBtn" style="width: 100%; font-size: 16px; padding: 15px;">🔄 Ejecutar Cruce de Datos</button>
+    </div>
+
+    <div id="status"></div>
+    
+    <!-- Botones Finales -->
+    <div class="action-buttons">
+        <a id="downloadLink" style="display: none; text-decoration: none;">
+            <button class="btn" style="background: #107c41;">⬇️ Descargar Archivo Final (CSV)</button>
+        </a>
+        <button class="btn btn-danger" id="resetBtn" style="display: none;" onclick="resetApp()">🗑️ Limpiar y Reiniciar</button>
+    </div>
+</div>
+      
+            </div>
+        </div>
+
+        
+
+        <!-- PESTAÑA 2 -->
+        <div class="tab-pane fade" id="tab2" role="tabpanel">
+            <div class="card p-4">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador Oficial de Letras CURP desde Excel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -84,6 +240,453 @@
     </div>
 </div>
 
+
+
+
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (Necesario para el funcionamiento de las pestañas) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SCRIPTS DE CADA HERRAMIENTA -->
+    
+     
+<script>
+<script>
+    // Variables globales
+    let convertedCSVBlobs = { base: null, comp: null };
+    let fileArrayBuffers = { base: null, comp: null };
+    let baseHeaders = [];
+    let compHeaders = [];
+    let lookupMap = new Map();
+    let outputChunks = [];
+
+    // 1. CARGA E IDENTIFICACIÓN DEL ARCHIVO
+    function handleFileSelect(type) {
+        const fileInput = document.getElementById(type === 'base' ? 'fileBase' : 'fileComp');
+        const sheetSelect = document.getElementById(type === 'base' ? 'sheetBase' : 'sheetComp');
+        const file = fileInput.files[0];
+        const statusDiv = document.getElementById('status');
+
+        if (!file) return;
+
+        const isExcel = /\.(xlsx|xls|xlsm|xlsb)$/i.test(file.name);
+
+        if (isExcel) {
+            statusDiv.innerText = `Cargando estructura de Excel (${type === 'base' ? 'Base' : 'Comparar'})...`;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    fileArrayBuffers[type] = e.target.result;
+                    const workbook = XLSX.read(e.target.result, { type: 'array', bookSheets: true });
+
+                    sheetSelect.innerHTML = '';
+                    workbook.SheetNames.forEach(sheetName => {
+                        const opt = document.createElement('option');
+                        opt.value = sheetName;
+                        opt.textContent = sheetName;
+                        sheetSelect.appendChild(opt);
+                    });
+                    sheetSelect.disabled = false;
+
+                    // Transformación inmediata de la primera hoja
+                    convertSheetToCSV(type);
+                } catch (err) {
+                    console.error(err);
+                    alert("Error al leer la estructura del archivo Excel.");
+                    statusDiv.innerText = "";
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            fileArrayBuffers[type] = null;
+            convertedCSVBlobs[type] = file;
+            sheetSelect.innerHTML = '<option value="__CSV__">Archivo CSV (Texto plano)</option>';
+            sheetSelect.disabled = true;
+            statusDiv.innerText = `Archivo CSV (${type === 'base' ? 'Base' : 'Comparar'}) cargado correctamente.`;
+        }
+    }
+
+    // 2. CONVERSIÓN A CSV
+    function convertSheetToCSV(type) {
+        const sheetSelect = document.getElementById(type === 'base' ? 'sheetBase' : 'sheetComp');
+        const sheetName = sheetSelect.value;
+        const statusDiv = document.getElementById('status');
+
+        if (!fileArrayBuffers[type] || !sheetName) return;
+
+        statusDiv.innerText = `Transformando la hoja "${sheetName}" a CSV en memoria...`;
+
+        setTimeout(() => {
+            try {
+                const workbook = XLSX.read(fileArrayBuffers[type], { type: 'array', sheets: sheetName });
+                const worksheet = workbook.Sheets[sheetName];
+
+                if (!worksheet) throw new Error("No se pudo extraer la hoja.");
+
+                const csvText = XLSX.utils.sheet_to_csv(worksheet);
+                convertedCSVBlobs[type] = new Blob([csvText], { type: 'text/csv' });
+
+                statusDiv.innerText = `¡Hoja "${sheetName}" lista!`;
+            } catch (err) {
+                console.error(err);
+                alert("Error al transformar la hoja de Excel a CSV.");
+                statusDiv.innerText = "";
+            }
+        }, 50);
+    }
+
+    // 3. LECTURA DE ENCABEZADOS
+    async function loadHeaders() {
+        if (!convertedCSVBlobs.base || !convertedCSVBlobs.comp) {
+            alert('Por favor carga y selecciona la hoja de ambos archivos.');
+            return;
+        }
+
+        const headerBaseIdx = parseInt(document.getElementById('headerBase').value) - 1;
+        const headerCompIdx = parseInt(document.getElementById('headerComp').value) - 1;
+
+        if (isNaN(headerBaseIdx) || headerBaseIdx < 0 || isNaN(headerCompIdx) || headerCompIdx < 0) {
+            alert('Indica filas de encabezados válidas (mayores o iguales a 1).');
+            return;
+        }
+
+        document.getElementById('status').innerText = "Obteniendo encabezados...";
+
+        try {
+            const [hBase, hComp] = await Promise.all([
+                getHeaderRow(convertedCSVBlobs.base, headerBaseIdx),
+                getHeaderRow(convertedCSVBlobs.comp, headerCompIdx)
+            ]);
+
+            baseHeaders = hBase;
+            compHeaders = hComp;
+
+            document.getElementById('step2').classList.remove('disabled');
+            document.getElementById('keyPairsContainer').innerHTML = '';
+            addKeyPair();
+
+            document.getElementById('resetBtn').style.display = 'inline-block';
+            document.getElementById('status').innerText = "Encabezados cargados. Pasa al paso 2.";
+        } catch (err) {
+            console.error(err);
+            alert(err || "Error al leer los encabezados en la fila indicada.");
+            document.getElementById('status').innerText = "";
+        }
+    }
+
+    function getHeaderRow(blob, targetRowIdx) {
+        return new Promise((resolve, reject) => {
+            let currentRow = 0;
+            let foundHeader = null;
+
+            Papa.parse(blob, {
+                skipEmptyLines: true,
+                step: (results, parser) => {
+                    if (currentRow === targetRowIdx) {
+                        foundHeader = results.data;
+                        parser.abort();
+                    }
+                    currentRow++;
+                },
+                complete: () => {
+                    if (foundHeader) {
+                        const cleaned = foundHeader.map((h, i) => h && String(h).trim() !== "" ? String(h).trim() : `Columna_${i+1}`);
+                        resolve(cleaned);
+                    } else {
+                        reject(`La fila de encabezados ${targetRowIdx + 1} excede las filas del archivo.`);
+                    }
+                },
+                error: (err) => reject(err)
+            });
+        });
+    }
+
+    function addKeyPair() {
+        const container = document.getElementById('keyPairsContainer');
+        const pairDiv = document.createElement('div');
+        pairDiv.className = 'key-pair';
+
+        let baseOptions = baseHeaders.map((h, i) => `<option value="${i}">${h}</option>`).join('');
+        let compOptions = compHeaders.map((h, i) => `<option value="${i}">${h}</option>`).join('');
+
+        pairDiv.innerHTML = `
+            <div style="flex:1">
+                <label>Columna en Libro Base</label>
+                <select class="base-key">${baseOptions}</select>
+            </div>
+            <div style="font-weight:bold; margin-top:15px;">=</div>
+            <div style="flex:1">
+                <label>Columna en Libro a Comparar</label>
+                <select class="comp-key">${compOptions}</select>
+            </div>
+            <button class="remove-btn" onclick="this.parentElement.remove()" style="margin-top: 20px;" title="Quitar">✖</button>
+        `;
+        container.appendChild(pairDiv);
+    }
+
+    function confirmKeys() {
+        const keyPairs = document.querySelectorAll('.key-pair');
+        if (keyPairs.length === 0) {
+            alert("Debes agregar al menos una columna de coincidencia.");
+            return;
+        }
+
+        const extractContainer = document.getElementById('extractColsContainer');
+        extractContainer.innerHTML = '';
+
+        compHeaders.forEach((header, index) => {
+            const lbl = document.createElement('label');
+            lbl.innerHTML = `<input type="checkbox" value="${index}"> ${header}`;
+            extractContainer.appendChild(lbl);
+        });
+
+        document.getElementById('step3').classList.remove('disabled');
+        document.getElementById('status').innerText = "Selecciona las columnas a extraer y presiona Ejecutar.";
+    }
+
+    // 4. PROCESAMIENTO CON LIMPIEZA EXTREMA
+    function processData() {
+        const extractCheckboxes = document.querySelectorAll('#extractColsContainer input:checked');
+        if (extractCheckboxes.length === 0) {
+            alert("Selecciona al menos una columna para extraer del libro a comparar.");
+            return;
+        }
+
+        const baseKeys = Array.from(document.querySelectorAll('.base-key')).map(s => parseInt(s.value));
+        const compKeys = Array.from(document.querySelectorAll('.comp-key')).map(s => parseInt(s.value));
+        const extractCols = Array.from(extractCheckboxes).map(c => parseInt(c.value));
+
+        const headerBaseIdx = parseInt(document.getElementById('headerBase').value) - 1;
+        const headerCompIdx = parseInt(document.getElementById('headerComp').value) - 1;
+
+        const statusDiv = document.getElementById('status');
+        const runBtn = document.getElementById('runBtn');
+        runBtn.disabled = true;
+
+        lookupMap.clear();
+        outputChunks = [];
+        
+        let maxMatches = 1; 
+        let globalColumnHasData = []; 
+
+        statusDiv.innerText = "Fase 1/2: Construyendo diccionario y omitiendo duplicados ocultos...";
+
+        // Función estricta para quitar espacios extras y emparejar mayúsculas/minúsculas
+        const normalizeText = (text) => String(text || "").toLowerCase().replace(/\s+/g, ' ').trim();
+
+        let compRowCounter = 0;
+
+        Papa.parse(convertedCSVBlobs.comp, {
+            worker: true,
+            skipEmptyLines: true,
+            step: function(results) {
+                const row = results.data;
+                const currentIdx = compRowCounter++;
+
+                if (currentIdx <= headerCompIdx) return;
+                if (!row || row.length === 0) return;
+
+                // PROTECCIÓN 1: Ignorar filas donde la llave de búsqueda esté totalmente en blanco (basura de Excel)
+                const isKeyEmpty = compKeys.every(colIdx => String(row[colIdx] || "").trim() === "");
+                if (isKeyEmpty) return;
+
+                const keyStr = compKeys.map(colIdx => String(row[colIdx] || "").trim().toLowerCase()).join('|||');
+                const extractedValues = extractCols.map(colIdx => {
+                    let val = row[colIdx];
+                    return val !== undefined && val !== null ? String(val).trim() : "";
+                });
+
+                if (extractedValues.every(v => v === "")) return;
+
+                let slots = lookupMap.get(keyStr);
+                if (!slots) {
+                    slots = [Array(extractCols.length).fill("")];
+                }
+
+                for (let i = 0; i < extractedValues.length; i++) {
+                    let val = extractedValues[i];
+                    if (val === "") continue; 
+
+                    let normVal = normalizeText(val);
+                    let isDuplicate = false;
+
+                    // PROTECCIÓN 2: Deduplicación estricta (no crear nuevas columnas si solo cambia un espacio o mayúscula)
+                    for (let s = 0; s < slots.length; s++) {
+                        if (slots[s][i] !== "" && normalizeText(slots[s][i]) === normVal) {
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+                    if (isDuplicate) continue; 
+
+                    let placed = false;
+                    for (let s = 0; s < slots.length; s++) {
+                        if (slots[s][i] === "") {
+                            slots[s][i] = val; // Se guarda respetando el formato original del usuario
+                            placed = true;
+                            
+                            if (!globalColumnHasData[s]) globalColumnHasData[s] = [];
+                            globalColumnHasData[s][i] = true;
+                            break;
+                        }
+                    }
+
+                    if (!placed) {
+                        let newSlot = Array(extractCols.length).fill("");
+                        newSlot[i] = val;
+                        slots.push(newSlot);
+                        
+                        let s = slots.length - 1;
+                        if (!globalColumnHasData[s]) globalColumnHasData[s] = [];
+                        globalColumnHasData[s][i] = true;
+                    }
+                }
+
+                lookupMap.set(keyStr, slots);
+                
+                if (slots.length > maxMatches) {
+                    maxMatches = slots.length;
+                }
+            },
+            complete: function() {
+                statusDiv.innerText = "Fase 2/2: Cruzando datos con el libro base...";
+
+                // FASE 1.5: FILTRADO DE ENCABEZADOS REALMENTE ÚTILES
+                let activeColumns = [];
+                let allNewHeaders = [];
+                
+                for (let s = 0; s < maxMatches; s++) {
+                    for (let i = 0; i < extractCols.length; i++) {
+                        if (globalColumnHasData[s] && globalColumnHasData[s][i]) {
+                            activeColumns.push({ s: s, i: i });
+                            let sufijo = s === 0 ? "" : ` (${s + 1})`;
+                            allNewHeaders.push(compHeaders[extractCols[i]] + sufijo);
+                        }
+                    }
+                }
+                
+                const finalHeaders = baseHeaders.concat(allNewHeaders);
+                outputChunks.push(Papa.unparse([finalHeaders]) + "\n");
+
+                let baseRowCounter = 0;
+
+                Papa.parse(convertedCSVBlobs.base, {
+                    worker: true,
+                    skipEmptyLines: true,
+                    step: function(results) {
+                        const row = results.data;
+                        const currentIdx = baseRowCounter++;
+
+                        if (currentIdx <= headerBaseIdx) return;
+                        if (!row || row.length === 0) return;
+
+                        // PROTECCIÓN 3: Si la fila base es pura basura vacía, no imprimimos "no hay coincidencia"
+                        const isBaseKeyEmpty = baseKeys.every(colIdx => String(row[colIdx] || "").trim() === "");
+
+                        let newRow;
+                        if (isBaseKeyEmpty) {
+                            let missing = Array(activeColumns.length).fill("");
+                            newRow = row.concat(missing);
+                        } else {
+                            const keyStr = baseKeys.map(colIdx => String(row[colIdx] || "").trim().toLowerCase()).join('|||');
+
+                            if (lookupMap.has(keyStr)) {
+                                let slots = lookupMap.get(keyStr);
+                                let matchedValues = [];
+                                
+                                for (let idx = 0; idx < activeColumns.length; idx++) {
+                                    let colDef = activeColumns[idx];
+                                    if (colDef.s < slots.length && slots[colDef.s][colDef.i] !== "") {
+                                        matchedValues.push(slots[colDef.s][colDef.i]);
+                                    } else {
+                                        matchedValues.push("");
+                                    }
+                                }
+                                newRow = row.concat(matchedValues);
+                            } else {
+                                let missing = [];
+                                for (let idx = 0; idx < activeColumns.length; idx++) {
+                                    missing.push(idx === 0 ? "no hay coincidencia" : "");
+                                }
+                                newRow = row.concat(missing);
+                            }
+                        }
+
+                        outputChunks.push(Papa.unparse([newRow]) + "\n");
+                    },
+                    complete: function() {
+                        statusDiv.innerText = "¡Proceso terminado con éxito! Ya puedes descargar el archivo.";
+                        generarArchivoDescarga();
+                        runBtn.disabled = false;
+                    },
+                    error: function(err) {
+                        console.error(err);
+                        alert("Ocurrió un error al procesar el libro base.");
+                        statusDiv.innerText = "";
+                        runBtn.disabled = false;
+                    }
+                });
+            }
+        });
+    }
+
+    // 5. GENERACIÓN Y LIMPIEZA
+    function generarArchivoDescarga() {
+        const blob = new Blob(outputChunks, { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.getElementById('downloadLink');
+        link.href = url;
+        link.download = "Resultado_Cruce.csv";
+        link.style.display = 'inline-block';
+
+        lookupMap.clear();
+        outputChunks = [];
+    }
+
+    function resetApp() {
+        convertedCSVBlobs = { base: null, comp: null };
+        fileArrayBuffers = { base: null, comp: null };
+        baseHeaders = [];
+        compHeaders = [];
+        lookupMap.clear();
+        outputChunks = [];
+
+        document.getElementById('fileBase').value = '';
+        document.getElementById('fileComp').value = '';
+        document.getElementById('headerBase').value = '1';
+        document.getElementById('headerComp').value = '1';
+
+        const sheetBase = document.getElementById('sheetBase');
+        sheetBase.innerHTML = '<option value="">-- Carga un archivo primero --</option>';
+        sheetBase.disabled = true;
+
+        const sheetComp = document.getElementById('sheetComp');
+        sheetComp.innerHTML = '<option value="">-- Carga un archivo primero --</option>';
+        sheetComp.disabled = true;
+
+        document.getElementById('step2').classList.add('disabled');
+        document.getElementById('step3').classList.add('disabled');
+        document.getElementById('keyPairsContainer').innerHTML = '';
+        document.getElementById('extractColsContainer').innerHTML = '';
+
+        document.getElementById('status').innerText = '';
+        document.getElementById('downloadLink').style.display = 'none';
+        document.getElementById('resetBtn').style.display = 'none';
+    }
+</script>
+
+</script>
+
+<script>
+
+     // SCRIPT DE LA HERRAMIENTA 2
 <script>
     let workbook = null;
     let currentData = [];
@@ -280,5 +883,34 @@
         XLSX.writeFile(newWorkbook, "Datos_CURP_Procesados.xlsx");
     }
 </script>
+
+</script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
