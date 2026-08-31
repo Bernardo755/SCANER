@@ -18,7 +18,7 @@
     <div class="card p-4 mx-auto" style="max-width: 800px;">
         <h2 class="mb-4 text-center">Extractor Oficial de Letras CURP</h2>
         <div class="alert alert-info">
-            Herramienta configurada para convertir automáticamente cualquier letra <strong>Ñ en X</strong> siguiendo los lineamientos de procesamiento de RENAPO.
+            Herramienta configurada con dos pasos: primero procesa los datos aplicando las reglas de RENAPO y después descárgalos.
         </div>
         
         <div class="mb-3">
@@ -76,7 +76,10 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary w-100 mt-3" onclick="processAndDownload()">Procesar y Descargar Archivo</button>
+            <!-- Botones separados -->
+            <button class="btn btn-primary w-100 mt-3" onclick="processData()">1. Procesar Datos</button>
+            <div id="successMsg" class="alert alert-success mt-3 hidden text-center" role="alert">¡Datos procesados correctamente! Ya puedes descargarlos.</div>
+            <button class="btn btn-success w-100 mt-2 hidden" id="btnDownload" onclick="downloadFile()">2. Descargar Archivo Modificado</button>
         </div>
     </div>
 </div>
@@ -84,6 +87,7 @@
 <script>
     let workbook = null;
     let currentData = [];
+    let isProcessed = false;
 
     const stopwords = ['DA','DAS','DE','DEL','DER','DI','DIE','DD','EL','LA','LOS','LAS','LE','LES','MAC','MC','VAN','VON','Y'];
     const excludesNames = ['JOSE', 'MARIA', 'MA', 'MA.', 'J', 'J.', 'SANTO', 'SANTA'];
@@ -110,6 +114,9 @@
             });
             
             document.getElementById('sheetConfig').classList.remove('hidden');
+            document.getElementById('btnDownload').classList.add('hidden');
+            document.getElementById('successMsg').classList.add('hidden');
+            isProcessed = false;
         };
         reader.readAsArrayBuffer(file);
     });
@@ -137,6 +144,9 @@
         });
 
         document.getElementById('columnMapping').classList.remove('hidden');
+        document.getElementById('btnDownload').classList.add('hidden');
+        document.getElementById('successMsg').classList.add('hidden');
+        isProcessed = false;
     }
 
     function toggleColType() {
@@ -148,9 +158,9 @@
     function cleanString(str) {
         if (!str) return "";
         return str.toString().trim().toUpperCase()
-            .replace(/Ñ/g, "X") // Convertir Ñ a X antes de cualquier otro filtro
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
-            .replace(/[^A-Z ]/g, ""); // Limpiar símbolos especiales
+            .replace(/Ñ/g, "X") 
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+            .replace(/[^A-Z ]/g, ""); 
     }
 
     function getValidTokens(str) {
@@ -215,7 +225,7 @@
         return "XXXXXXX";
     }
 
-    function processAndDownload() {
+    function processData() {
         const isSeparate = document.getElementById('colSeparate').checked;
         const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
         
@@ -257,10 +267,16 @@
             row[newColIdx] = curpLetters;
         }
 
+        isProcessed = true;
+        document.getElementById('btnDownload').classList.remove('hidden');
+        document.getElementById('successMsg').classList.remove('hidden');
+    }
+
+    function downloadFile() {
+        if (!isProcessed) return alert("Primero debes procesar los datos.");
         const newSheet = XLSX.utils.aoa_to_sheet(currentData);
         const newWorkbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Procesado");
-        
         XLSX.writeFile(newWorkbook, "Datos_CURP_Procesados.xlsx");
     }
 </script>
