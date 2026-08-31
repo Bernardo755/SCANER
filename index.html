@@ -35,131 +35,9 @@
   <!-- Contenedor de Aplicaciones -->
   <div class="window-container">
     
-    <!-- PESTAÑA 1: Optimizador de Cortes Pro -->
-    <div id="tab2" class="app-window">
-      <div class="container">
-        <!-- Panel Lateral -->
-        <div class="sidebar">
-          <h2>COMPARADOR</h2>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
-  <style>
-          
- /* Estilos internos adaptados del Optimizador de Cortes */
-    .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
-    .sidebar { width: 320px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0; }
-    h2 { font-size: 16px; margin-bottom: 12px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
-    .group { margin-bottom: 12px; }
-    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #475569; }
-    input { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
-    input:focus { outline: none; border-color: #2563eb; }
-    .row { display: flex; gap: 10px; }
-    button.action-btn { width: 100%; padding: 10px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-    button.action-btn:hover { background: #1d4ed8; }
-    button.clear { background: #ef4444; margin-top: 8px; }
-    button.clear:hover { background: #dc2626; }
-    
-    .summary-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-top: 15px; }
-    .summary-item { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: #334155; }
-    
-    .main-area { flex-grow: 1; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .instructions { font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 4px solid #2563eb; }
-    
-    .board-container { width: 100%; height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; overflow: hidden; position: relative; }
-    .canvas-overlay { position: absolute; top: 10px; left: 10px; background: rgba(15, 23, 42, 0.85); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; z-index: 10; pointer-events: none; }
-    .canvas-overlay strong { color: #38bdf8; }
-
-    .board { background: #e2e8f0; border: 2px solid #94a3b8; position: relative; transform-origin: center; }
-    .bounding-box-guide { position: absolute; border: 2px dashed #f59e0b; background: rgba(245, 158, 11, 0.08); pointer-events: none; display: none; }
-
-    .piece { position: absolute; color: white; border: 1px solid rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; text-align: center; cursor: move; user-select: none; border-radius: 3px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
-    .piece:hover { filter: brightness(1.08); }
-    .piece span { pointer-events: none; }
-          </style>
-</head>
-<body>
-          <div class="group row">
-            <div>
-              <label>Ancho (mm)</label>
-              <input type="number" id="board-w" value="2440" oninput="updateBoard()">
-            </div>
-            <div>
-              <label>Alto (mm)</label>
-              <input type="number" id="board-h" value="1220" oninput="updateBoard()">
-            </div>
-          </div>
-          
-          <div class="group">
-            <label>Grosor del disco / Margen (mm)</label>
-            <input type="number" id="kerf" value="3" oninput="updateBoard()">
-          </div>
-
-          <h2>2. Agregar Piezas</h2>
-          <div class="group">
-            <label>Etiqueta / Nombre</label>
-            <input type="text" id="piece-name" placeholder="Ej: Estante">
-          </div>
-          <div class="group row">
-            <div>
-              <label>Ancho (mm)</label>
-              <input type="number" id="piece-w" value="600">
-            </div>
-            <div>
-              <label>Alto (mm)</label>
-              <input type="number" id="piece-h" value="400">
-            </div>
-          </div>
-          <div class="group">
-            <label>Cantidad</label>
-            <input type="number" id="piece-qty" value="1" min="1">
-          </div>
-          <button class="action-btn" onclick="addPieces()">+ Agregar Piezas</button>
-          <button class="action-btn clear" onclick="clearPieces()">Limpiar Piezas</button>
-
-          <h2>3. Resumen</h2>
-          <div class="summary-card">
-            <div class="summary-item">
-              <span>Piezas totales:</span>
-              <strong id="stat-count">0</strong>
-            </div>
-            <div class="summary-item">
-              <span>Área neta piezas:</span>
-              <strong id="stat-area-pieces">0.00 m²</strong>
-            </div>
-            <div class="summary-item">
-              <span>Aprovechamiento:</span>
-              <strong id="stat-usage">0%</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Área de Trabajo -->
-        <div class="main-area">
-          <div class="instructions">
-            💡 <strong>Novedad:</strong> Las piezas cambian de color por paquete y <strong>no se pueden encimar</strong> respetando el margen de corte. Revisa las medidas del área usada arriba a la izquierda.
-          </div>
-          <div class="board-container" id="board-container">
-            <div class="canvas-overlay">
-              📏 Tablero Base: <strong id="overlay-board-dim">0 x 0 mm</strong> | 
-              ✂️ Placa Utilizada: <strong id="overlay-used-dim">0 x 0 mm</strong>
-            </div>
-            <div class="board" id="board">
-              <div class="bounding-box-guide" id="bounding-box-guide"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-
   
-    <!-- PESTAÑA 2: Aquí puedes colocar tu otro código -->
+  
+    <!--PESTAÑA 2: Aquí puedes colocar tu otro código -->
     <div id="tab1" class="app-window active">
       <div class="main-area" style="max-width: 1200px; margin: 0 auto;">
         <h2>COMPARADOR</h2>
@@ -982,8 +860,6 @@
         XLSX.writeFile(newWorkbook, "Datos_CURP_Procesados.xlsx");
     }
 </script>
-</body>
-</html>
 
 </body>
 </html>
