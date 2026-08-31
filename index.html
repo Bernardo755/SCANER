@@ -1,609 +1,276 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculadora de Maderera</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Raíz CURP desde Excel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Librería SheetJS para leer y escribir Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body { background-color: #f8f9fa; padding: 2rem; }
+        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans min-h-screen p-4 md:p-8 pb-20">
+<body>
 
-  <div class="max-w-6xl mx-auto space-y-6">
-    
-    <header class="bg-amber-800 text-white p-6 rounded-xl shadow-lg flex flex-wrap justify-between items-center gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">🪵 Calculadora de Madera</h1>
-        <p class="text-amber-200 text-sm">Cálculo de pies con soporte multimetría y análisis de muebles</p>
-      </div>
-      <div class="flex gap-2">
-        <!-- BOTÓN NUEVO: CONVERSOR -->
-        <button onclick="abrirConversor()" class="bg-teal-700 hover:bg-teal-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-teal-500 shadow-md">
-          🧮 Conversor
-        </button>
-        <button onclick="consultarHistorial()" class="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg text-sm font-semibold transition border border-amber-500 shadow-md">
-          📋 Consultar y Editar
-        </button>
-      </div>
-    </header>
-
-    <main class="bg-white rounded-xl shadow-md p-6 space-y-6">
-      
-      <!-- Indicador de Edición -->
-      <div id="badge-edicion" class="hidden bg-indigo-100 text-indigo-800 p-3 rounded-lg flex justify-between items-center border border-indigo-200">
-        <div><span class="font-bold">Modo Edición:</span> Estás editando un cálculo guardado previamente.</div>
-        <button onclick="limpiarFormulario()" class="text-indigo-600 hover:text-indigo-900 font-bold text-sm">Cancelar Edición</button>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Título o Referencia del Proyecto *</label>
-        <input type="text" id="titulo" placeholder="Ej: Pedido Cliente Perez - Comedor" class="w-full border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-amber-500 outline-none">
-      </div>
-
-      <!-- Tabla de Medidas de Madera -->
-      <div class="overflow-x-auto border border-slate-200 rounded-lg">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-100 border-b text-xs uppercase text-slate-500 font-semibold">
-              <th class="p-3 text-center w-10">#</th>
-              <th class="p-3">Largo</th>
-              <th class="p-3">Ancho</th>
-              <th class="p-3">Grosor</th>
-              <th class="p-3 text-center w-24">Cantidad</th>
-              <th class="p-3 text-center">Pies/Tabla</th>
-              <th class="p-3 text-center">Subtotal PT</th>
-              <th class="p-3 text-center">X</th>
-            </tr>
-          </thead>
-          <tbody id="filas-madera" class="divide-y divide-slate-100 text-sm"></tbody>
-        </table>
-      </div>
-
-      <div class="flex justify-between items-center border-t pt-4">
-        <button onclick="agregarFila()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg transition shadow-sm flex items-center gap-1">
-          ➕ Agregar Tabla
-        </button>
-        <div class="bg-amber-50 border border-amber-200 rounded-lg px-6 py-2 flex items-center gap-4 text-amber-900 shadow-inner">
-          <span class="font-semibold">Total:</span>
-          <span id="total-general" class="text-2xl font-extrabold">0.00 PT</span>
-        </div>
-      </div>
-
-      <!-- SECCIÓN: ANÁLISIS DE MUEBLE -->
-      <div class="mt-8 border-t-2 border-slate-100 pt-6">
-        <h2 class="text-xl font-bold text-slate-700 mb-2 flex items-center gap-2">🪑 Análisis de Fabricación de Muebles</h2>
-        <p class="text-sm text-slate-500 mb-6">Agrega los grosores (en pulgadas) y pies (PT) que requiere tu mueble. Se cruzará con tu inventario superior.</p>
+<div class="container">
+    <div class="card p-4 mx-auto" style="max-width: 800px;">
+        <h2 class="mb-4 text-center">Procesador de Nombres para CURP</h2>
         
-        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre del Mueble / Producto</label>
-            <input type="text" id="mueble-nombre" placeholder="Ej: Silla de Comedor" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="calcularMueble()">
-          </div>
-
-          <div class="overflow-x-auto border border-blue-200 rounded-lg bg-white">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-blue-50 text-xs uppercase text-blue-800 font-semibold border-b border-blue-200">
-                  <th class="p-3">Grosor Requerido (Pulgadas)</th>
-                  <th class="p-3">Pies (PT) por Mueble</th>
-                  <th class="p-3 text-center w-20">Acción</th>
-                </tr>
-              </thead>
-              <tbody id="filas-req-mueble" class="divide-y divide-slate-100 text-sm"></tbody>
-            </table>
-          </div>
-          
-          <button onclick="agregarFilaMueble()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition shadow-sm">
-            ➕ Agregar Grosor / Componente
-          </button>
+        <!-- 1. Carga de Archivo -->
+        <div class="mb-3">
+            <label class="form-label fw-bold">1. Selecciona el archivo (Excel o CSV):</label>
+            <input type="file" class="form-control" id="fileInput" accept=".xlsx, .xls, .csv">
         </div>
 
-        <div id="resultado-mueble" class="hidden mt-4 p-5 rounded-lg text-sm shadow-inner transition-all"></div>
-      </div>
-
-      <!-- BOTONES FINALES -->
-      <div class="flex justify-end gap-4 pt-6 mt-4 border-t border-slate-200">
-        <button onclick="limpiarFormulario()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium px-6 py-3 rounded-lg transition">🧹 Limpiar Todo</button>
-        <button onclick="guardarEnSheets()" class="bg-amber-700 hover:bg-amber-800 text-white font-bold px-8 py-3 rounded-lg transition shadow-lg text-lg flex items-center gap-2">
-          💾 Guardar Proyecto
-        </button>
-      </div>
-
-    </main>
-
-    <!-- MODAL DE CONSULTA HISTORIAL -->
-    <div id="modal-historial" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-      <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden">
-        <div class="p-4 bg-slate-800 text-white flex justify-between items-center">
-          <h2 class="text-lg font-bold">📋 Proyectos Guardados</h2>
-          <button onclick="cerrarHistorial()" class="text-slate-400 hover:text-white font-bold text-2xl">&times;</button>
+        <!-- 2. Configuración de Hoja y Encabezados -->
+        <div id="sheetConfig" class="hidden">
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold">2. Selecciona la Hoja de Trabajo:</label>
+                    <select class="form-select" id="sheetSelect"></select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Fila de encabezados:</label>
+                    <input type="number" class="form-control" id="headerRow" value="1" min="1">
+                </div>
+            </div>
+            <button class="btn btn-secondary w-100 mb-4" onclick="loadHeaders()">Cargar Encabezados</button>
         </div>
-        <div class="p-4 overflow-y-auto flex-1">
-          <div id="loading-historial" class="text-center py-8 text-slate-500 font-medium">Cargando base de datos...</div>
-          <table id="tabla-historial" class="hidden w-full text-sm text-left border-collapse">
-            <thead class="bg-slate-100 text-slate-600 sticky top-0 shadow-sm">
-              <tr id="headers-historial"></tr>
-            </thead>
-            <tbody id="body-historial" class="divide-y divide-slate-200"></tbody>
-          </table>
+
+        <!-- 3. Mapeo de Columnas -->
+        <div id="columnMapping" class="hidden">
+            <h5 class="fw-bold">3. Configuración de Columnas</h5>
+            
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="colType" id="colSeparate" value="separate" checked onchange="toggleColType()">
+                    <label class="form-check-label" for="colSeparate">Columnas Separadas</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="colType" id="colSingle" value="single" onchange="toggleColType()">
+                    <label class="form-check-label" for="colSingle">Una Sola Columna (Nombre Completo)</label>
+                </div>
+            </div>
+
+            <!-- Separadas -->
+            <div id="separateCols" class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Nombre(s):</label>
+                    <select class="form-select col-select" id="colNombre"></select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Apellido Paterno:</label>
+                    <select class="form-select col-select" id="colPaterno"></select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Apellido Materno:</label>
+                    <select class="form-select col-select" id="colMaterno"></select>
+                </div>
+            </div>
+
+            <!-- Simple -->
+            <div id="singleCol" class="hidden row">
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Columna Nombre Completo (Formato: Nombres ApellidoP ApellidoM):</label>
+                    <select class="form-select col-select" id="colCompleto"></select>
+                </div>
+            </div>
+
+            <button class="btn btn-primary w-100 mt-3" onclick="processAndDownload()">Procesar y Descargar Archivo</button>
         </div>
-      </div>
     </div>
+</div>
 
-    <!-- MODAL NUEVO: CONVERSOR Y CALCULADORA DE FRACCIONES -->
-    <div id="modal-conversor" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-4">
-      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
-        <div class="p-4 bg-teal-800 text-white flex justify-between items-center">
-          <h2 class="text-lg font-bold">🧮 Conversor de Medidas</h2>
-          <button onclick="cerrarConversor()" class="text-teal-200 hover:text-white font-bold text-2xl">&times;</button>
-        </div>
-        <div class="p-6 space-y-6">
-          <p class="text-sm text-slate-500">Ingresa una medida en decimal o fracción (ej. <span class="font-mono bg-slate-100 px-1">1 1/2</span> o <span class="font-mono bg-slate-100 px-1">3/4</span>) y selecciona la unidad.</p>
-          
-          <div class="flex gap-2">
-            <input type="text" id="conv-input" placeholder="Ej: 1 1/2" class="w-full border border-slate-300 rounded-lg p-3 text-lg text-center outline-none focus:ring-2 focus:ring-teal-500" oninput="convertirValores()">
-            <select id="conv-unidad" class="border border-slate-300 rounded-lg p-3 bg-white outline-none focus:ring-2 focus:ring-teal-500 font-semibold" onchange="convertirValores()">
-              <option value="in">Pulgadas (in)</option>
-              <option value="cm">Centímetros (cm)</option>
-              <option value="ft">Pies (ft)</option>
-            </select>
-          </div>
+<script>
+    let workbook = null;
+    let currentData = [];
 
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
-            <div class="flex justify-between items-center border-b pb-2 border-slate-200">
-              <span class="text-slate-500 font-medium">En Pulgadas:</span>
-              <span id="res-in" class="font-bold text-lg text-slate-800">0.000 in</span>
-            </div>
-            <div class="flex justify-between items-center border-b pb-2 border-slate-200">
-              <span class="text-slate-500 font-medium">En Centímetros:</span>
-              <span id="res-cm" class="font-bold text-lg text-slate-800">0.00 cm</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-medium">En Pies:</span>
-              <span id="res-ft" class="font-bold text-lg text-slate-800">0.000 ft</span>
-            </div>
-          </div>
-          
-          <button onclick="cerrarConversor()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-lg transition">Cerrar</button>
-        </div>
-      </div>
-    </div>
+    // Palabras a ignorar en nombres compuestos según SEGOB
+    const stopwords = ['DA','DAS','DE','DEL','DER','DI','DIE','DD','EL','LA','LOS','LAS','LE','LES','MAC','MC','VAN','VON','Y'];
 
-  </div>
-
-  <script>
-    // === ⚠️ REEMPLAZA ESTA URL CON TU SCRIPT EXISTENTE ⚠️ ===
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbyBMWLc_Q4dV6PG_VudNf9BT_17i4CEebdJKyfx6q9A5u6dr3vpTcsXRBBnkfHLnjQLZg/exec";
-
-    let proyectoActualId = null;
-    let infoMuebleGuardar = null;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      agregarFila(); 
-      agregarFilaMueble(); 
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            workbook = XLSX.read(data, {type: 'array'});
+            
+            const sheetSelect = document.getElementById('sheetSelect');
+            sheetSelect.innerHTML = '';
+            workbook.SheetNames.forEach(sheetName => {
+                sheetSelect.innerHTML += `<option value="${sheetName}">${sheetName}</option>`;
+            });
+            
+            document.getElementById('sheetConfig').classList.remove('hidden');
+        };
+        reader.readAsArrayBuffer(file);
     });
 
-    // Convierte texto/fracciones a decimal
-    function procesarFraccion(valor) {
-      if (!valor) return 0;
-      valor = valor.toString().trim();
-      if (!isNaN(valor)) return parseFloat(valor) || 0;
-
-      const mixedMatch = valor.match(/^(\d+)[ \-](.+)$/);
-      if (mixedMatch) {
-        const entero = parseFloat(mixedMatch[1]);
-        const fraccionPartes = mixedMatch[2].split('/');
-        if (fraccionPartes.length === 2) return entero + (parseFloat(fraccionPartes[0]) / parseFloat(fraccionPartes[1]));
-      }
-      if (valor.includes('/')) {
-        const partes = valor.split('/');
-        if (partes.length === 2) return parseFloat(partes[0]) / parseFloat(partes[1]);
-      }
-      return 0; 
-    }
-
-    // =====================================
-    // LÓGICA DEL CONVERSOR (NUEVO)
-    // =====================================
-    function abrirConversor() {
-      document.getElementById("modal-conversor").classList.remove("hidden");
-      document.getElementById("conv-input").focus();
-    }
-    
-    function cerrarConversor() {
-      document.getElementById("modal-conversor").classList.add("hidden");
-    }
-
-    function convertirValores() {
-      const inputVal = document.getElementById("conv-input").value;
-      const unidad = document.getElementById("conv-unidad").value;
-      const valDec = procesarFraccion(inputVal);
-
-      if (valDec === 0) {
-        document.getElementById("res-in").textContent = "0.000 in";
-        document.getElementById("res-cm").textContent = "0.00 cm";
-        document.getElementById("res-ft").textContent = "0.000 ft";
-        return;
-      }
-
-      let inVal = 0, cmVal = 0, ftVal = 0;
-
-      if (unidad === 'in') {
-        inVal = valDec;
-        cmVal = valDec * 2.54;
-        ftVal = valDec / 12;
-      } else if (unidad === 'cm') {
-        cmVal = valDec;
-        inVal = valDec / 2.54;
-        ftVal = valDec / 30.48;
-      } else if (unidad === 'ft') {
-        ftVal = valDec;
-        inVal = valDec * 12;
-        cmVal = valDec * 30.48;
-      }
-
-      document.getElementById("res-in").textContent = inVal.toFixed(3) + " in";
-      document.getElementById("res-cm").textContent = cmVal.toFixed(2) + " cm";
-      document.getElementById("res-ft").textContent = ftVal.toFixed(3) + " ft";
-    }
-
-
-    // =====================================
-    // LÓGICA DE TABLAS / INVENTARIO DE MADERA
-    // =====================================
-    function agregarFila(datos = null) {
-      const tbody = document.getElementById("filas-madera");
-      const tr = document.createElement("tr");
-      
-      // Valores por defecto de las unidades si no hay datos guardados
-      const uLargo = datos ? datos.uLargo : 'ft';
-      const uAncho = datos ? datos.uAncho : 'in';
-      const uGrosor = datos ? datos.uGrosor : 'in';
-
-      tr.innerHTML = `
-        <td class="p-2 text-center font-bold text-slate-400 num-fila"></td>
+    function loadHeaders() {
+        const sheetName = document.getElementById('sheetSelect').value;
+        const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
         
-        <td class="p-2">
-          <div class="flex flex-col sm:flex-row gap-1">
-            <input type="text" class="largo border border-slate-300 rounded p-1.5 w-full sm:w-20 text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.largo : ''}" oninput="calcularTotales()">
-            <select class="u-largo text-xs border border-slate-300 bg-slate-50 rounded p-1 outline-none text-slate-600 focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
-              <option value="ft" ${uLargo === 'ft' ? 'selected' : ''}>ft</option>
-              <option value="cm" ${uLargo === 'cm' ? 'selected' : ''}>cm</option>
-            </select>
-          </div>
-        </td>
-
-        <td class="p-2">
-          <div class="flex flex-col sm:flex-row gap-1">
-            <input type="text" class="ancho border border-slate-300 rounded p-1.5 w-full sm:w-20 text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.ancho : ''}" oninput="calcularTotales()">
-            <select class="u-ancho text-xs border border-slate-300 bg-slate-50 rounded p-1 outline-none text-slate-600 focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
-              <option value="in" ${uAncho === 'in' ? 'selected' : ''}>in</option>
-              <option value="cm" ${uAncho === 'cm' ? 'selected' : ''}>cm</option>
-            </select>
-          </div>
-        </td>
-
-        <td class="p-2">
-          <div class="flex flex-col sm:flex-row gap-1">
-            <input type="text" class="grosor border border-slate-300 rounded p-1.5 w-full sm:w-20 text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.grosor : ''}" oninput="calcularTotales()">
-            <select class="u-grosor text-xs border border-slate-300 bg-slate-50 rounded p-1 outline-none text-slate-600 focus:ring-1 focus:ring-amber-500" onchange="calcularTotales()">
-              <option value="in" ${uGrosor === 'in' ? 'selected' : ''}>in</option>
-              <option value="cm" ${uGrosor === 'cm' ? 'selected' : ''}>cm</option>
-            </select>
-          </div>
-        </td>
-
-        <td class="p-2"><input type="number" step="1" min="1" class="cantidad border border-slate-300 rounded p-1.5 w-full text-center focus:ring-1 focus:ring-amber-500" value="${datos ? datos.cantidad : '1'}" oninput="calcularTotales()"></td>
-        <td class="p-2 font-medium text-slate-600 pies-unitarios text-center">0.00</td>
-        <td class="p-2 font-bold text-amber-800 pies-subtotal text-center">0.00</td>
-        <td class="p-2 text-center"><button onclick="eliminarFila(this)" class="text-rose-500 font-bold hover:bg-rose-100 px-2 rounded">✕</button></td>
-      `;
-      tbody.appendChild(tr);
-      actualizarNumeracion();
-      if(datos) calcularTotales();
-    }
-
-    function eliminarFila(btn) {
-      if (document.getElementById("filas-madera").children.length > 1) {
-        btn.closest("tr").remove();
-        actualizarNumeracion();
-        calcularTotales();
-      } else alert("Debe existir al menos una tabla.");
-    }
-
-    function actualizarNumeracion() {
-      document.querySelectorAll("#filas-madera tr").forEach((fila, index) => {
-        fila.querySelector(".num-fila").textContent = index + 1;
-      });
-    }
-
-    // CALCULA Y CONVIERTE UNIDADES DESDE CADA FILA
-    function calcularTotales() {
-      let grandTotal = 0;
-      
-      document.querySelectorAll("#filas-madera tr").forEach(fila => {
-        let lVal = procesarFraccion(fila.querySelector(".largo").value);
-        let aVal = procesarFraccion(fila.querySelector(".ancho").value);
-        let gVal = procesarFraccion(fila.querySelector(".grosor").value);
-        const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
-
-        // Obtener la unidad seleccionada para esta fila específica
-        const uLargo = fila.querySelector(".u-largo").value;
-        const uAncho = fila.querySelector(".u-ancho").value;
-        const uGrosor = fila.querySelector(".u-grosor").value;
-
-        // Conversiones (La fórmula PT estándar necesita: Pies para Largo, Pulgadas para Ancho y Grosor)
-        let largoFt = (uLargo === 'cm') ? lVal / 30.48 : lVal;
-        let anchoIn = (uAncho === 'cm') ? aVal / 2.54 : aVal;
-        let grosorIn = (uGrosor === 'cm') ? gVal / 2.54 : gVal;
-
-        const piesUnitarios = (grosorIn * anchoIn * largoFt) / 12;
-        const subtotalPies = piesUnitarios * cantidad;
-
-        // Guardamos el grosor en Pulgadas en la fila de forma invisible para que la sección de muebles funcione correctamente siempre.
-        fila.dataset.grosorIn = grosorIn.toFixed(4);
-
-        fila.querySelector(".pies-unitarios").textContent = piesUnitarios.toFixed(2);
-        fila.querySelector(".pies-subtotal").textContent = subtotalPies.toFixed(2);
-        grandTotal += subtotalPies;
-      });
-      
-      document.getElementById("total-general").textContent = grandTotal.toFixed(2) + " PT";
-      calcularMueble(); // Recalcular muebles basados en inventario actualizado
-    }
-
-    // =====================================
-    // LÓGICA DE COMPONENTES DEL MUEBLE
-    // =====================================
-    function agregarFilaMueble(datos = null) {
-      const tbody = document.getElementById("filas-req-mueble");
-      const tr = document.createElement("tr");
-      
-      tr.innerHTML = `
-        <td class="p-2"><input type="text" placeholder="Ej: 1 1/2" class="req-grosor border border-blue-200 rounded p-2 w-full text-center focus:ring-1 focus:ring-blue-500" value="${datos ? datos.grosor : ''}" oninput="calcularMueble()"></td>
-        <td class="p-2"><input type="number" step="0.1" placeholder="Ej: 4.5" class="req-pt border border-blue-200 rounded p-2 w-full text-center focus:ring-1 focus:ring-blue-500" value="${datos ? datos.pt : ''}" oninput="calcularMueble()"></td>
-        <td class="p-2 text-center"><button onclick="eliminarFilaMueble(this)" class="text-rose-500 font-bold px-2 py-1 hover:bg-rose-100 rounded">✕</button></td>
-      `;
-      tbody.appendChild(tr);
-      if(datos) calcularMueble();
-    }
-
-    function eliminarFilaMueble(btn) {
-      btn.closest("tr").remove();
-      calcularMueble();
-    }
-
-    function calcularMueble() {
-      const nombre = document.getElementById("mueble-nombre").value || "Mueble";
-      const divRes = document.getElementById("resultado-mueble");
-      const filasReq = document.querySelectorAll("#filas-req-mueble tr");
-
-      let agrupacionReqs = {}; 
-      let hasReqs = false;
-
-      // 1. Requerimientos
-      filasReq.forEach(fila => {
-        const grosorStr = fila.querySelector(".req-grosor").value;
-        const grosor = procesarFraccion(grosorStr); // Asumimos que los requerimientos del mueble se anotan en pulgadas
-        const pt = parseFloat(fila.querySelector(".req-pt").value) || 0;
-
-        if (grosor > 0 && pt > 0) {
-          hasReqs = true;
-          if (!agrupacionReqs[grosor]) agrupacionReqs[grosor] = { str: grosorStr, ptTotal: 0 };
-          agrupacionReqs[grosor].ptTotal += pt;
+        const worksheet = workbook.Sheets[sheetName];
+        // Leer como array de arrays
+        currentData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+        
+        if(currentData.length <= headerRowIdx) {
+            alert("La fila de encabezados no existe.");
+            return;
         }
-      });
 
-      if (!hasReqs) {
-        divRes.classList.add("hidden");
-        infoMuebleGuardar = null;
-        return;
-      }
-
-      // 2. Extraer Inventario de Madera (Leemos la variable invisible ya estandarizada en pulgadas)
-      let inventario = [];
-      document.querySelectorAll("#filas-madera tr").forEach(fila => {
-        const grosor = parseFloat(fila.dataset.grosorIn) || 0; 
-        const subtotal = parseFloat(fila.querySelector(".pies-subtotal").textContent);
-        if (grosor > 0 && subtotal > 0) inventario.push({ grosor, subtotal });
-      });
-
-      // 3. Analizar disponibilidad
-      let mueblesPosiblesArray = [];
-      let detalleHTML = `<ul class="list-disc pl-5 space-y-3 mt-4 text-sm text-slate-700">`;
-      let reqGuardar = [];
-
-      for (let gReqNum in agrupacionReqs) {
-        const req = agrupacionReqs[gReqNum];
-        const grosorReq = parseFloat(gReqNum);
+        const headers = currentData[headerRowIdx];
+        const selects = document.querySelectorAll('.col-select');
         
-        let ptExacto = 0, ptGrueso = 0, ptDelgado = 0;
-
-        inventario.forEach(inv => {
-          if (Math.abs(inv.grosor - grosorReq) < 0.05) ptExacto += inv.subtotal; 
-          else if (inv.grosor > grosorReq) ptGrueso += inv.subtotal;
-          else if (inv.grosor < grosorReq) ptDelgado += inv.subtotal;
+        selects.forEach(select => {
+            select.innerHTML = '<option value="-1">-- Selecciona Columna --</option>';
+            headers.forEach((h, idx) => {
+                select.innerHTML += `<option value="${idx}">${h || `Columna ${idx+1}`}</option>`;
+            });
         });
 
-        const totalUsable = ptExacto + ptGrueso + ptDelgado;
-        const posiblesParaEsteGrosor = Math.floor(totalUsable / req.ptTotal);
-        
-        mueblesPosiblesArray.push(posiblesParaEsteGrosor);
-
-        detalleHTML += `<li>
-          <b>Componentes de ${req.str}" (Req. ${req.ptTotal} PT):</b> Alcanza para <b>${posiblesParaEsteGrosor}</b> mueble(s).
-          <div class="text-xs text-slate-500 mt-1 bg-white/50 p-2 rounded inline-block">
-            Madera disponible: ${ptExacto.toFixed(1)} PT Exactos | ${ptGrueso.toFixed(1)} PT para cepillar | ${ptDelgado.toFixed(1)} PT para laminar.
-          </div>
-        </li>`;
-
-        reqGuardar.push({ grosor: req.str, pt: req.ptTotal, posibles: posiblesParaEsteGrosor });
-      }
-      detalleHTML += `</ul>`;
-
-      const mueblesCompletos = Math.min(...mueblesPosiblesArray);
-
-      divRes.classList.remove("hidden", "bg-emerald-50", "bg-rose-50", "bg-amber-50");
-      let tituloHTML = `<h4 class="font-bold text-lg mb-2 pb-2 border-b border-black/10">
-        Resultado Final: Puedes armar <span class="text-2xl">${mueblesCompletos}</span> ${nombre}(s) completos.
-      </h4>`;
-
-      if (mueblesCompletos > 0) divRes.classList.add("bg-emerald-50", "text-emerald-900", "border", "border-emerald-200");
-      else divRes.classList.add("bg-rose-50", "text-rose-900", "border", "border-rose-200");
-
-      divRes.innerHTML = tituloHTML + detalleHTML;
-
-      infoMuebleGuardar = {
-        nombre: nombre,
-        piezas: mueblesCompletos,
-        requisitos: reqGuardar,
-        notas: `Requiere ${reqGuardar.length} grosores dist.`
-      };
+        document.getElementById('columnMapping').classList.remove('hidden');
     }
 
-    // =====================================
-    // GUARDADO Y CONSULTA
-    // =====================================
-    function limpiarFormulario() {
-      proyectoActualId = null;
-      document.getElementById("badge-edicion").classList.add("hidden");
-      document.getElementById("titulo").value = "";
-      document.getElementById("mueble-nombre").value = "";
-      document.getElementById("resultado-mueble").classList.add("hidden");
-      
-      document.getElementById("filas-madera").innerHTML = "";
-      document.getElementById("filas-req-mueble").innerHTML = "";
-      
-      infoMuebleGuardar = null;
-      agregarFila();
-      agregarFilaMueble();
-      calcularTotales();
+    function toggleColType() {
+        const isSeparate = document.getElementById('colSeparate').checked;
+        document.getElementById('separateCols').classList.toggle('hidden', !isSeparate);
+        document.getElementById('singleCol').classList.toggle('hidden', isSeparate);
     }
 
-    async function guardarEnSheets() {
-      const titulo = document.getElementById("titulo").value.trim();
-      if (!titulo) return alert("Por favor ingresa un título para el proyecto.");
-      
-      const filas = document.querySelectorAll("#filas-madera tr");
-      const items = [];
+    // --- LÓGICA DE EXTRACCIÓN DE CURP ---
 
-      filas.forEach(fila => {
-        const largoStr = fila.querySelector(".largo").value;
-        const uLargo = fila.querySelector(".u-largo").value;
-        const anchoStr = fila.querySelector(".ancho").value;
-        const uAncho = fila.querySelector(".u-ancho").value;
-        const grosorStr = fila.querySelector(".grosor").value;
-        const uGrosor = fila.querySelector(".u-grosor").value;
-        const cantidad = parseInt(fila.querySelector(".cantidad").value) || 0;
-        const pt = parseFloat(fila.querySelector(".pies-unitarios").textContent);
-        const spt = parseFloat(fila.querySelector(".pies-subtotal").textContent);
+    function cleanString(str) {
+        if (!str) return "";
+        return str.toString().trim().toUpperCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+            .replace(/[^A-ZÑ ]/g, ""); // Quitar caracteres especiales
+    }
 
-        if (procesarFraccion(largoStr) > 0 && cantidad > 0) {
-          // Ahora guardamos la unidad específica seleccionada de la fila
-          items.push({ 
-            largo: largoStr, uLargo: uLargo, 
-            ancho: anchoStr, uAncho: uAncho, 
-            grosor: grosorStr, uGrosor: uGrosor, 
-            cantidad, piesPorTabla: pt, subtotalPies: spt 
-          });
+    function getValidTokens(str) {
+        let parts = cleanString(str).split(/\s+/);
+        // Filtrar preposiciones y artículos
+        return parts.filter(p => p && !stopwords.includes(p));
+    }
+
+    function getPrimeraVocalInterna(word) {
+        // Busca la primera vocal a partir de la segunda letra
+        const match = word.substring(1).match(/[AEIOU]/);
+        return match ? match[0] : 'X';
+    }
+
+    function generateCURP4(nombres, paterno, materno) {
+        let nomTokens = getValidTokens(nombres);
+        let patTokens = getValidTokens(paterno);
+        let matTokens = getValidTokens(materno);
+
+        // 1. Apellido Paterno: Primera letra y primera vocal interna
+        let pat = patTokens.length > 0 ? patTokens[0] : "X";
+        let letra1 = pat.charAt(0) || 'X';
+        // Nota: El estandar de CURP usa la 1ra vocal interna. Si quieres estrictamente 
+        // las dos primeras letras, cambia esta variable a: let letra2 = pat.charAt(1) || 'X';
+        let letra2 = getPrimeraVocalInterna(pat);
+
+        // 2. Apellido Materno: Primera letra (o X si no tiene)
+        let mat = matTokens.length > 0 ? matTokens[0] : "X";
+        let letra3 = mat === "X" ? "X" : mat.charAt(0);
+
+        // 3. Nombre: Filtrar María / José si hay nombres compuestos
+        let nomValid = "X";
+        if (nomTokens.length > 0) {
+            nomValid = nomTokens[0];
+            const excludes = ['JOSE', 'MARIA', 'MA', 'MA.', 'J', 'J.'];
+            if (excludes.includes(nomValid) && nomTokens.length > 1) {
+                nomValid = nomTokens[1]; // Tomar el segundo nombre
+            }
         }
-      });
+        let letra4 = nomValid.charAt(0);
 
-      if (items.length === 0) return alert("Ingresa al menos una medida de madera válida antes de guardar.");
-
-      const payload = {
-        id: proyectoActualId || "PRJ-" + new Date().getTime(),
-        titulo: titulo,
-        totalGeneral: parseFloat(document.getElementById("total-general").textContent),
-        filas: items,
-        mueble: infoMuebleGuardar
-      };
-
-      try {
-        await fetch(URL_APPS_SCRIPT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        alert("✅ Proyecto Guardado/Actualizado con éxito.");
-        limpiarFormulario();
-      } catch (error) {
-        alert("❌ Error al guardar.");
-      }
+        return letra1 + letra2 + letra3 + letra4;
     }
 
-    async function consultarHistorial() {
-      const modal = document.getElementById("modal-historial");
-      const loading = document.getElementById("loading-historial");
-      const tabla = document.getElementById("tabla-historial");
-      
-      modal.classList.remove("hidden");
-      loading.classList.remove("hidden");
-      tabla.classList.add("hidden");
+    function parseFullNameAndGenerate(fullName) {
+        const tokens = getValidTokens(fullName);
+        // Heurística básica: Si hay 3 o más palabras, asumimos que los últimos dos son Paterno y Materno
+        if (tokens.length >= 3) {
+            let mat = tokens.pop();
+            let pat = tokens.pop();
+            let nom = tokens.join(" ");
+            return generateCURP4(nom, pat, mat);
+        } else if (tokens.length === 2) {
+            // Nombre y Paterno (Sin materno)
+            return generateCURP4(tokens[0], tokens[1], "");
+        } else if (tokens.length === 1) {
+            return generateCURP4(tokens[0], "", "");
+        }
+        return "XXXX";
+    }
 
-      try {
-        const res = await fetch(URL_APPS_SCRIPT);
-        const data = await res.json();
+    // --- PROCESAMIENTO DEL EXCEL ---
+
+    function processAndDownload() {
+        const isSeparate = document.getElementById('colSeparate').checked;
+        const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
         
-        loading.classList.add("hidden");
-        tabla.classList.remove("hidden");
+        let cNom = -1, cPat = -1, cMat = -1, cFull = -1;
 
-        const hContainer = document.getElementById("headers-historial");
-        const bContainer = document.getElementById("body-historial");
-        hContainer.innerHTML = ""; bContainer.innerHTML = "";
-
-        if (data.data.length === 0) {
-          bContainer.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No hay proyectos.</td></tr>`;
-          return;
+        if (isSeparate) {
+            cNom = parseInt(document.getElementById('colNombre').value);
+            cPat = parseInt(document.getElementById('colPaterno').value);
+            cMat = parseInt(document.getElementById('colMaterno').value);
+            if (cNom === -1 || cPat === -1) return alert("Selecciona al menos Nombre y Apellido Paterno");
+        } else {
+            cFull = parseInt(document.getElementById('colCompleto').value);
+            if (cFull === -1) return alert("Selecciona la columna de Nombre Completo");
         }
 
-        data.headers.forEach(h => hContainer.innerHTML += `<th class="p-3">${h}</th>`);
+        // Encontrar la siguiente columna vacía general basada en el encabezado
+        const newColIdx = currentData[headerRowIdx].length;
+        
+        // Escribir el nuevo encabezado
+        currentData[headerRowIdx][newColIdx] = "RAIZ_CURP";
 
-        data.data.forEach(row => {
-          const jsonSeguro = row[5] ? row[5].replace(/'/g, "&#39;") : ""; 
-          let tr = `<tr class="hover:bg-slate-50 border-b border-slate-100">
-            <td class="p-3 font-mono text-xs text-slate-500">${row[0]}</td>
-            <td class="p-3 whitespace-nowrap text-xs">${row[1]}</td>
-            <td class="p-3 font-bold text-slate-700">${row[2]}</td>
-            <td class="p-3 font-bold text-amber-700">${row[3]} PT</td>
-            <td class="p-3 text-xs text-slate-600">${row[4]}</td>
-            <td class="p-3 text-center">
-              <button onclick='cargarProyecto(\`${jsonSeguro}\`)' class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-sm font-medium transition shadow-sm">
-                ✏️ Editar
-              </button>
-            </td>
-          </tr>`;
-          bContainer.innerHTML += tr;
-        });
-      } catch (error) {
-        loading.textContent = "Error al cargar. Revisa tu URL de Apps Script.";
-      }
+        // Iterar sobre las filas de datos
+        for (let i = headerRowIdx + 1; i < currentData.length; i++) {
+            let row = currentData[i];
+            // Rellenar celdas vacías si la fila es más corta
+            while(row.length <= newColIdx) row.push("");
+
+            let curpRaiz = "XXXX";
+
+            if (isSeparate) {
+                let n = row[cNom] || "";
+                let p = row[cPat] || "";
+                let m = (cMat !== -1) ? (row[cMat] || "") : "";
+                if (n || p) {
+                    curpRaiz = generateCURP4(n, p, m);
+                } else {
+                    curpRaiz = ""; // Fila vacía
+                }
+            } else {
+                let f = row[cFull] || "";
+                if (f) {
+                    curpRaiz = parseFullNameAndGenerate(f);
+                } else {
+                    curpRaiz = "";
+                }
+            }
+
+            row[newColIdx] = curpRaiz;
+        }
+
+        // Crear nuevo libro y descargar
+        const newSheet = XLSX.utils.aoa_to_sheet(currentData);
+        const newWorkbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Procesado");
+        
+        XLSX.writeFile(newWorkbook, "Datos_CURP_Procesados.xlsx");
     }
-
-    function cargarProyecto(jsonStr) {
-      if(!jsonStr) return alert("Error de lectura de datos.");
-      const data = JSON.parse(jsonStr);
-      
-      proyectoActualId = data.id;
-      document.getElementById("badge-edicion").classList.remove("hidden");
-      document.getElementById("titulo").value = data.titulo;
-
-      document.getElementById("filas-madera").innerHTML = "";
-      // Al iterar sobre filas, el nuevo agregarFila tomará en cuenta los "uLargo", "uAncho" para dejarlos seleccionados
-      data.filas.forEach(f => agregarFila(f));
-
-      document.getElementById("filas-req-mueble").innerHTML = "";
-      if (data.mueble && data.mueble.requisitos && data.mueble.requisitos.length > 0) {
-        document.getElementById("mueble-nombre").value = data.mueble.nombre || "";
-        data.mueble.requisitos.forEach(r => agregarFilaMueble({ grosor: r.grosor, pt: r.pt }));
-      } else {
-        document.getElementById("mueble-nombre").value = "";
-        agregarFilaMueble();
-      }
-
-      calcularTotales(); 
-      cerrarHistorial();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cerrarHistorial() {
-      document.getElementById("modal-historial").classList.add("hidden");
-    }
-  </script>
+</script>
 </body>
 </html>
