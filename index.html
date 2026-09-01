@@ -1,56 +1,14 @@
-
 <!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistema Multi-Herramienta</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #e2e8f0; color: #1e293b; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-    /* Barra de Pestañas Superior */
-    .tab-bar { display: flex; background: #0f172a; padding: 10px 20px 0 20px; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 1000; }
-    .tab-btn { background: #1e293b; color: #94a3b8; border: none; padding: 10px 20px; font-size: 14px; font-weight: 600; border-top-left-radius: 8px; border-top-right-radius: 8px; cursor: pointer; transition: all 0.2s; }
-    .tab-btn:hover { background: #334155; color: #f8fafc; }
-    .tab-btn.active { background: #f1f5f9; color: #0f172a; }
-
-    /* Contenedor de las Ventanas */
-    .window-container { flex-grow: 1; position: relative; overflow: hidden; }
-    .app-window { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; background: #f1f5f9; overflow-y: auto; padding: 20px; }
-    .app-window.active { display: block; }
-
-  </style>
-</head>
-<body>
-
-  <!-- Barra de Pestañas -->
-  <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('tab1', event)"> COMPARADOR</button>
-    <button class="tab-btn" onclick="switchTab('tab2', event)"> COMBINADOR PARA CURP</button>
-  </div>
-
-  <!-- Contenedor de Aplicaciones -->
-  <div class="window-container">
-
-    <!--PESTAÑA 2: Aquí puedes colocar tu otro código -->
-    <div id="tab1" class="app-window active">
-      <div class="main-area" style="max-width: 1200px; margin: 0 auto;">
-             <!-- Panel Lateral -->
-        <div class="sidebar">
-        <h2>COMPARADOR</h2>
-        <div class="instructions" style="margin-top: 15px;">
-          
- <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cruce de Datos Optimizado</title>
-    <!-- Librería SheetJS para conversión instantánea de Excel a CSV -->
+    <title>Suite de Procesamiento de Datos</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Librería PapaParse para procesamiento streaming de CSV masivos -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
     <style>
         :root {
             --primary: #217346;
@@ -60,109 +18,229 @@
             --text: #323130;
             --border: #edebe9;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: var(--panel-bg); padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
-        p.subtitle { text-align: center; color: #605e5c; margin-bottom: 25px; }
         
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 20px; 
+        }
+
+        /* Control de Pestañas */
+        .nav-tabs-custom {
+            display: flex;
+            gap: 10px;
+            max-width: 900px;
+            margin: 0 auto 20px auto;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .tab-btn {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            color: #444;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Estilos App 1: Cruce de Datos */
+        .cruce-container { max-width: 900px; margin: 0 auto; background: var(--panel-bg); padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .cruce-container h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #605e5c; margin-bottom: 25px; }
         .step { border: 1px solid var(--border); border-radius: 6px; padding: 20px; margin-bottom: 20px; background: #faf9f8; transition: opacity 0.3s; }
         .step h3 { margin-top: 0; color: var(--primary); }
         .step.disabled { opacity: 0.5; pointer-events: none; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px;}
-        input[type="file"], input[type="number"], select {
+        .cruce-container label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px;}
+        .cruce-container input[type="file"], .cruce-container input[type="number"], .cruce-container select {
             width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; margin-bottom: 15px;
         }
-        
-        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background 0.2s; }
-        .btn:hover { background-color: var(--primary-hover); }
-        .btn-outline { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
-        .btn-outline:hover { background-color: var(--primary); color: white; }
-        .btn-danger { background-color: #d13438; }
-        .btn-danger:hover { background-color: #a80000; }
-        
+        .btn-cruce { background-color: var(--primary); color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; transition: background 0.2s; }
+        .btn-cruce:hover { background-color: var(--primary-hover); }
+        .btn-outline-cruce { background-color: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline-cruce:hover { background-color: var(--primary); color: white; }
+        .btn-danger-cruce { background-color: #d13438; color: white; }
+        .btn-danger-cruce:hover { background-color: #a80000; }
         .key-pair { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; background: white; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
         .key-pair select { margin-bottom: 0; width: 100%; padding: 8px;}
         .remove-btn { cursor: pointer; color: #d13438; font-weight: bold; font-size: 18px; border: none; background: none; }
-        
         .checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; background: white; padding: 15px; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; }
         .checkbox-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; margin: 0; cursor: pointer;}
-        
         #status { text-align: center; font-weight: bold; margin-top: 20px; color: var(--primary); }
         .action-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+
+        /* Estilos App 2: Extractor CURP */
+        .curp-container .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Cruce de Datos</h1>
-    <p class="subtitle">Realiza comparacion de dos libros optimizando columnas (Cero columnas vacías).</p>
+<div class="nav-tabs-custom">
+    <button class="tab-btn active" onclick="switchTab('tab-cruce')">📊 Cruce de Datos</button>
+    <button class="tab-btn" onclick="switchTab('tab-curp')">🆔 Generador Letras CURP</button>
+</div>
 
-    <!-- PASO 1: Archivos, Hojas y Encabezados -->
-    <div class="step" id="step1">
-        <h3>1. Cargar Archivos, Seleccionar Hojas e Indicar Encabezados</h3>
-        <div class="grid-2">
-            <div>
-                <label>Libro Base (Al que se le agregarán datos):</label>
-                <input type="file" id="fileBase" accept=".csv, .xlsx, .xls, .xlsm, .xlsb" onchange="handleFileSelect('base')">
-                
-                <label>Seleccionar Hoja (Base):</label>
-                <select id="sheetBase" disabled onchange="convertSheetToCSV('base')">
-                    <option value="">-- Carga un archivo primero --</option>
-                </select>
+<div id="tab-cruce" class="tab-content active">
+    <div class="cruce-container">
+        <h1>Cruce de Datos</h1>
+        <p class="subtitle">Realiza comparación de dos libros optimizando columnas (Cero columnas vacías).</p>
 
-                <label>Fila donde están los encabezados:</label>
-                <input type="number" id="headerBase" value="1" min="1">
+        <div class="step" id="step1">
+            <h3>1. Cargar Archivos, Seleccionar Hojas e Indicar Encabezados</h3>
+            <div class="grid-2">
+                <div>
+                    <label>Libro Base (Al que se le agregarán datos):</label>
+                    <input type="file" id="fileBase" accept=".csv, .xlsx, .xls, .xlsm, .xlsb" onchange="handleFileSelect('base')">
+                    
+                    <label>Seleccionar Hoja (Base):</label>
+                    <select id="sheetBase" disabled onchange="convertSheetToCSV('base')">
+                        <option value="">-- Carga un archivo primero --</option>
+                    </select>
+
+                    <label>Fila donde están los encabezados:</label>
+                    <input type="number" id="headerBase" value="1" min="1">
+                </div>
+                <div>
+                    <label>Libro a Comparar (De donde se extraerán datos):</label>
+                    <input type="file" id="fileComp" accept=".csv, .xlsx, .xls, .xlsm, .xlsb" onchange="handleFileSelect('comp')">
+                    
+                    <label>Seleccionar Hoja (A Comparar):</label>
+                    <select id="sheetComp" disabled onchange="convertSheetToCSV('comp')">
+                        <option value="">-- Carga un archivo primero --</option>
+                    </select>
+
+                    <label>Fila donde están los encabezados:</label>
+                    <input type="number" id="headerComp" value="1" min="1">
+                </div>
             </div>
-            <div>
-                <label>Libro a Comparar (De donde se extraerán datos):</label>
-                <input type="file" id="fileComp" accept=".csv, .xlsx, .xls, .xlsm, .xlsb" onchange="handleFileSelect('comp')">
-                
-                <label>Seleccionar Hoja (A Comparar):</label>
-                <select id="sheetComp" disabled onchange="convertSheetToCSV('comp')">
-                    <option value="">-- Carga un archivo primero --</option>
-                </select>
+            <button class="btn-cruce" onclick="loadHeadersCruce()">Leer Encabezados</button>
+        </div>
 
-                <label>Fila donde están los encabezados:</label>
-                <input type="number" id="headerComp" value="1" min="1">
+        <div class="step disabled" id="step2">
+            <h3>2. Seleccionar Columnas de Coincidencia (Llaves)</h3>
+            <p style="font-size: 14px;">Elige qué columnas deben ser idénticas en ambos libros.</p>
+            <div id="keyPairsContainer"></div>
+            <button class="btn-cruce btn-outline-cruce" onclick="addKeyPair()">+ Agregar columna de coincidencia</button>
+            <br><br>
+            <button class="btn-cruce" onclick="confirmKeys()">Confirmar Coincidencias</button>
+        </div>
+
+        <div class="step disabled" id="step3">
+            <h3>3. Seleccionar Columnas a Obtener</h3>
+            <p style="font-size: 14px;">Selecciona las columnas del "Libro a Comparar" que deseas copiar al "Libro Base".</p>
+            <div class="checkbox-group" id="extractColsContainer"></div>
+            <br>
+            <button class="btn-cruce" onclick="processData()" id="runBtn" style="width: 100%; font-size: 16px; padding: 15px;">🔄 Ejecutar Cruce de Datos</button>
+        </div>
+
+        <div id="status"></div>
+        
+        <div class="action-buttons">
+            <a id="downloadLink" style="display: none; text-decoration: none;">
+                <button class="btn-cruce" style="background: #107c41;">⬇️ Descargar Archivo Final (CSV)</button>
+            </a>
+            <button class="btn-cruce btn-danger-cruce" id="resetBtn" style="display: none;" onclick="resetApp()">🗑️ Limpiar y Reiniciar</button>
+        </div>
+    </div>
+</div>
+
+<div id="tab-curp" class="tab-content">
+    <div class="container curp-container">
+        <div class="card p-4 mx-auto" style="max-width: 800px;">
+            <h2 class="mb-4 text-center">Extractor Oficial de Letras CURP</h2>
+            <div class="alert alert-info">
+                Herramienta configurada para convertir automáticamente cualquier letra <strong>Ñ en X</strong> siguiendo los lineamientos de procesamiento de RENAPO.
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold">1. Selecciona el archivo (Excel o CSV):</label>
+                <input type="file" class="form-control" id="curpFileInput" accept=".xlsx, .xls, .csv">
+            </div>
+
+            <div id="curpSheetConfig" class="hidden">
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-bold">2. Selecciona la Hoja de Trabajo:</label>
+                        <select class="form-select" id="curpSheetSelect"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fila de encabezados:</label>
+                        <input type="number" class="form-control" id="curpHeaderRow" value="1" min="1">
+                    </div>
+                </div>
+                <button class="btn btn-secondary w-100 mb-4" onclick="loadHeadersCURP()">Cargar Encabezados</button>
+            </div>
+
+            <div id="curpColumnMapping" class="hidden">
+                <h5 class="fw-bold">3. Configuración de Columnas</h5>
+                
+                <div class="mb-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="colType" id="curpColSeparate" value="separate" checked onchange="toggleColTypeCURP()">
+                        <label class="form-check-label" for="curpColSeparate">Columnas Separadas</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="colType" id="curpColSingle" value="single" onchange="toggleColTypeCURP()">
+                        <label class="form-check-label" for="curpColSingle">Una Sola Columna (Nombre Completo)</label>
+                    </div>
+                </div>
+
+                <div id="curpSeparateCols" class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Nombre(s):</label>
+                        <select class="form-select curp-col-select" id="curpColNombre"></select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Apellido Paterno:</label>
+                        <select class="form-select curp-col-select" id="curpColPaterno"></select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Apellido Materno:</label>
+                        <select class="form-select curp-col-select" id="curpColMaterno"></select>
+                    </div>
+                </div>
+
+                <div id="curpSingleCol" class="hidden row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Columna Nombre Completo (Nombres ApellidoP ApellidoM):</label>
+                        <select class="form-select curp-col-select" id="curpColCompleto"></select>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary w-100 mt-3" onclick="processAndDownloadCURP()">Procesar y Descargar Archivo</button>
             </div>
         </div>
-        <button class="btn" onclick="loadHeaders()">Leer Encabezados</button>
-    </div>
-
-    <!-- PASO 2: Columnas de Coincidencia -->
-    <div class="step disabled" id="step2">
-        <h3>2. Seleccionar Columnas de Coincidencia (Llaves)</h3>
-        <p style="font-size: 14px;">Elige qué columnas deben ser idénticas en ambos libros.</p>
-        <div id="keyPairsContainer"></div>
-        <button class="btn btn-outline" onclick="addKeyPair()">+ Agregar columna de coincidencia</button>
-        <br><br>
-        <button class="btn" onclick="confirmKeys()">Confirmar Coincidencias</button>
-    </div>
-
-    <!-- PASO 3: Columnas a Extraer -->
-    <div class="step disabled" id="step3">
-        <h3>3. Seleccionar Columnas a Obtener</h3>
-        <p style="font-size: 14px;">Selecciona las columnas del "Libro a Comparar" que deseas copiar al "Libro Base".</p>
-        <div class="checkbox-group" id="extractColsContainer"></div>
-        <br>
-        <button class="btn" onclick="processData()" id="runBtn" style="width: 100%; font-size: 16px; padding: 15px;">🔄 Ejecutar Cruce de Datos</button>
-    </div>
-
-    <div id="status"></div>
-    
-    <!-- Botones Finales -->
-    <div class="action-buttons">
-        <a id="downloadLink" style="display: none; text-decoration: none;">
-            <button class="btn" style="background: #107c41;">⬇️ Descargar Archivo Final (CSV)</button>
-        </a>
-        <button class="btn btn-danger" id="resetBtn" style="display: none;" onclick="resetApp()">🗑️ Limpiar y Reiniciar</button>
     </div>
 </div>
 
 <script>
-    // Variables globales
+    // --- LÓGICA DE NAVEGACIÓN ENTRE PESTAÑAS ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // ==========================================
+    // LÓGICA DE APP 1: CRUCE DE DATOS
+    // ==========================================
     let convertedCSVBlobs = { base: null, comp: null };
     let fileArrayBuffers = { base: null, comp: null };
     let baseHeaders = [];
@@ -170,7 +248,6 @@
     let lookupMap = new Map();
     let outputChunks = [];
 
-    // 1. CARGA E IDENTIFICACIÓN DEL ARCHIVO
     function handleFileSelect(type) {
         const fileInput = document.getElementById(type === 'base' ? 'fileBase' : 'fileComp');
         const sheetSelect = document.getElementById(type === 'base' ? 'sheetBase' : 'sheetComp');
@@ -198,7 +275,6 @@
                     });
                     sheetSelect.disabled = false;
 
-                    // Transformación inmediata de la primera hoja
                     convertSheetToCSV(type);
                 } catch (err) {
                     console.error(err);
@@ -216,7 +292,6 @@
         }
     }
 
-    // 2. CONVERSIÓN A CSV
     function convertSheetToCSV(type) {
         const sheetSelect = document.getElementById(type === 'base' ? 'sheetBase' : 'sheetComp');
         const sheetName = sheetSelect.value;
@@ -245,8 +320,7 @@
         }, 50);
     }
 
-    // 3. LECTURA DE ENCABEZADOS
-    async function loadHeaders() {
+    async function loadHeadersCruce() {
         if (!convertedCSVBlobs.base || !convertedCSVBlobs.comp) {
             alert('Por favor carga y selecciona la hoja de ambos archivos.');
             return;
@@ -354,7 +428,6 @@
         document.getElementById('status').innerText = "Selecciona las columnas a extraer y presiona Ejecutar.";
     }
 
-    // 4. PROCESAMIENTO CON LIMPIEZA EXTREMA
     function processData() {
         const extractCheckboxes = document.querySelectorAll('#extractColsContainer input:checked');
         if (extractCheckboxes.length === 0) {
@@ -381,7 +454,6 @@
 
         statusDiv.innerText = "Fase 1/2: Construyendo diccionario y omitiendo duplicados ocultos...";
 
-        // Función estricta para quitar espacios extras y emparejar mayúsculas/minúsculas
         const normalizeText = (text) => String(text || "").toLowerCase().replace(/\s+/g, ' ').trim();
 
         let compRowCounter = 0;
@@ -396,7 +468,6 @@
                 if (currentIdx <= headerCompIdx) return;
                 if (!row || row.length === 0) return;
 
-                // PROTECCIÓN 1: Ignorar filas donde la llave de búsqueda esté totalmente en blanco (basura de Excel)
                 const isKeyEmpty = compKeys.every(colIdx => String(row[colIdx] || "").trim() === "");
                 if (isKeyEmpty) return;
 
@@ -420,7 +491,6 @@
                     let normVal = normalizeText(val);
                     let isDuplicate = false;
 
-                    // PROTECCIÓN 2: Deduplicación estricta (no crear nuevas columnas si solo cambia un espacio o mayúscula)
                     for (let s = 0; s < slots.length; s++) {
                         if (slots[s][i] !== "" && normalizeText(slots[s][i]) === normVal) {
                             isDuplicate = true;
@@ -432,7 +502,7 @@
                     let placed = false;
                     for (let s = 0; s < slots.length; s++) {
                         if (slots[s][i] === "") {
-                            slots[s][i] = val; // Se guarda respetando el formato original del usuario
+                            slots[s][i] = val; 
                             placed = true;
                             
                             if (!globalColumnHasData[s]) globalColumnHasData[s] = [];
@@ -461,7 +531,6 @@
             complete: function() {
                 statusDiv.innerText = "Fase 2/2: Cruzando datos con el libro base...";
 
-                // FASE 1.5: FILTRADO DE ENCABEZADOS REALMENTE ÚTILES
                 let activeColumns = [];
                 let allNewHeaders = [];
                 
@@ -490,7 +559,6 @@
                         if (currentIdx <= headerBaseIdx) return;
                         if (!row || row.length === 0) return;
 
-                        // PROTECCIÓN 3: Si la fila base es pura basura vacía, no imprimimos "no hay coincidencia"
                         const isBaseKeyEmpty = baseKeys.every(colIdx => String(row[colIdx] || "").trim() === "");
 
                         let newRow;
@@ -540,7 +608,6 @@
         });
     }
 
-    // 5. GENERACIÓN Y LIMPIEZA
     function generarArchivoDescarga() {
         const blob = new Blob(outputChunks, { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -584,102 +651,13 @@
         document.getElementById('downloadLink').style.display = 'none';
         document.getElementById('resetBtn').style.display = 'none';
     }
-</script>
 
 
-  
-  
-<!-- PESTAÑA 3: Tu nuevo código -->
-    <div id="tab2" class="app-window">
-      <div class="main-area" style="max-width: 1200px; margin: 0 auto;">
-        
-
-  <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Oficial de Letras CURP desde Excel</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <style>
-        body { background-color: #f8f9fa; padding: 2rem; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="card p-4 mx-auto" style="max-width: 800px;">
-        <h2 class="mb-4 text-center">Extractor Oficial de Letras CURP</h2>
-        <div class="alert alert-info">
-            Herramienta configurada para convertir automáticamente cualquier letra <strong>Ñ en X</strong> siguiendo los lineamientos de procesamiento de RENAPO.
-        </div>
-        
-        <div class="mb-3">
-            <label class="form-label fw-bold">1. Selecciona el archivo (Excel o CSV):</label>
-            <input type="file" class="form-control" id="fileInput" accept=".xlsx, .xls, .csv">
-        </div>
-
-        <div id="sheetConfig" class="hidden">
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <label class="form-label fw-bold">2. Selecciona la Hoja de Trabajo:</label>
-                    <select class="form-select" id="sheetSelect"></select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Fila de encabezados:</label>
-                    <input type="number" class="form-control" id="headerRow" value="1" min="1">
-                </div>
-            </div>
-            <button class="btn btn-secondary w-100 mb-4" onclick="loadHeaders()">Cargar Encabezados</button>
-        </div>
-
-        <div id="columnMapping" class="hidden">
-            <h5 class="fw-bold">3. Configuración de Columnas</h5>
-            
-            <div class="mb-3">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="colType" id="colSeparate" value="separate" checked onchange="toggleColType()">
-                    <label class="form-check-label" for="colSeparate">Columnas Separadas</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="colType" id="colSingle" value="single" onchange="toggleColType()">
-                    <label class="form-check-label" for="colSingle">Una Sola Columna (Nombre Completo)</label>
-                </div>
-            </div>
-
-            <div id="separateCols" class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Nombre(s):</label>
-                    <select class="form-select col-select" id="colNombre"></select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Apellido Paterno:</label>
-                    <select class="form-select col-select" id="colPaterno"></select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Apellido Materno:</label>
-                    <select class="form-select col-select" id="colMaterno"></select>
-                </div>
-            </div>
-
-            <div id="singleCol" class="hidden row">
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">Columna Nombre Completo (Nombres ApellidoP ApellidoM):</label>
-                    <select class="form-select col-select" id="colCompleto"></select>
-                </div>
-            </div>
-
-            <button class="btn btn-primary w-100 mt-3" onclick="processAndDownload()">Procesar y Descargar Archivo</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    let workbook = null;
-    let currentData = [];
+    // ==========================================
+    // LÓGICA DE APP 2: EXTRACTOR DE LETRAS CURP
+    // ==========================================
+    let curpWorkbook = null;
+    let curpCurrentData = [];
 
     const stopwords = ['DA','DAS','DE','DEL','DER','DI','DIE','DD','EL','LA','LOS','LAS','LE','LES','MAC','MC','VAN','VON','Y'];
     const excludesNames = ['JOSE', 'MARIA', 'MA', 'MA.', 'J', 'J.', 'SANTO', 'SANTA'];
@@ -690,40 +668,40 @@
         'PEDA', 'PEDO', 'PENE', 'PPIN', 'PUTA', 'PUTO', 'QULO', 'RATA', 'RUIN'
     ];
 
-    document.getElementById('fileInput').addEventListener('change', function(e) {
+    document.getElementById('curpFileInput').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
         
         const reader = new FileReader();
         reader.onload = function(e) {
             const data = new Uint8Array(e.target.result);
-            workbook = XLSX.read(data, {type: 'array'});
+            curpWorkbook = XLSX.read(data, {type: 'array'});
             
-            const sheetSelect = document.getElementById('sheetSelect');
+            const sheetSelect = document.getElementById('curpSheetSelect');
             sheetSelect.innerHTML = '';
-            workbook.SheetNames.forEach(sheetName => {
+            curpWorkbook.SheetNames.forEach(sheetName => {
                 sheetSelect.innerHTML += `<option value="${sheetName}">${sheetName}</option>`;
             });
             
-            document.getElementById('sheetConfig').classList.remove('hidden');
+            document.getElementById('curpSheetConfig').classList.remove('hidden');
         };
         reader.readAsArrayBuffer(file);
     });
 
-    function loadHeaders() {
-        const sheetName = document.getElementById('sheetSelect').value;
-        const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
+    function loadHeadersCURP() {
+        const sheetName = document.getElementById('curpSheetSelect').value;
+        const headerRowIdx = parseInt(document.getElementById('curpHeaderRow').value) - 1;
         
-        const worksheet = workbook.Sheets[sheetName];
-        currentData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+        const worksheet = curpWorkbook.Sheets[sheetName];
+        curpCurrentData = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
         
-        if(currentData.length <= headerRowIdx) {
+        if(curpCurrentData.length <= headerRowIdx) {
             alert("La fila de encabezados no existe.");
             return;
         }
 
-        const headers = currentData[headerRowIdx];
-        const selects = document.querySelectorAll('.col-select');
+        const headers = curpCurrentData[headerRowIdx];
+        const selects = document.querySelectorAll('.curp-col-select');
         
         selects.forEach(select => {
             select.innerHTML = '<option value="-1">-- Selecciona Columna --</option>';
@@ -732,25 +710,25 @@
             });
         });
 
-        document.getElementById('columnMapping').classList.remove('hidden');
+        document.getElementById('curpColumnMapping').classList.remove('hidden');
     }
 
-    function toggleColType() {
-        const isSeparate = document.getElementById('colSeparate').checked;
-        document.getElementById('separateCols').classList.toggle('hidden', !isSeparate);
-        document.getElementById('singleCol').classList.toggle('hidden', isSeparate);
+    function toggleColTypeCURP() {
+        const isSeparate = document.getElementById('curpColSeparate').checked;
+        document.getElementById('curpSeparateCols').classList.toggle('hidden', !isSeparate);
+        document.getElementById('curpSingleCol').classList.toggle('hidden', isSeparate);
     }
 
-    function cleanString(str) {
+    function cleanStringCURP(str) {
         if (!str) return "";
         return str.toString().trim().toUpperCase()
-            .replace(/Ñ/g, "X") // Convertir Ñ a X antes de cualquier otro filtro
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
-            .replace(/[^A-Z ]/g, ""); // Limpiar símbolos especiales
+            .replace(/Ñ/g, "X") 
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") 
+            .replace(/[^A-Z ]/g, ""); 
     }
 
-    function getValidTokens(str) {
-        let parts = cleanString(str).split(/\s+/);
+    function getValidTokensCURP(str) {
+        let parts = cleanStringCURP(str).split(/\s+/);
         return parts.filter(p => p && !stopwords.includes(p));
     }
 
@@ -765,9 +743,9 @@
     }
 
     function generateCURPLetters(nombres, paterno, materno) {
-        let nomTokens = getValidTokens(nombres);
-        let patTokens = getValidTokens(paterno);
-        let matTokens = getValidTokens(materno);
+        let nomTokens = getValidTokensCURP(nombres);
+        let patTokens = getValidTokensCURP(paterno);
+        let matTokens = getValidTokensCURP(materno);
 
         let pat = patTokens.length > 0 ? patTokens[0] : "X";
         let letra1 = pat.charAt(0) || 'X';
@@ -797,7 +775,7 @@
     }
 
     function parseFullNameAndGenerate(fullName) {
-        const tokens = getValidTokens(fullName);
+        const tokens = getValidTokensCURP(fullName);
         if (tokens.length >= 3) {
             let mat = tokens.pop();
             let pat = tokens.pop();
@@ -811,27 +789,27 @@
         return "XXXXXXX";
     }
 
-    function processAndDownload() {
-        const isSeparate = document.getElementById('colSeparate').checked;
-        const headerRowIdx = parseInt(document.getElementById('headerRow').value) - 1;
+    function processAndDownloadCURP() {
+        const isSeparate = document.getElementById('curpColSeparate').checked;
+        const headerRowIdx = parseInt(document.getElementById('curpHeaderRow').value) - 1;
         
         let cNom = -1, cPat = -1, cMat = -1, cFull = -1;
 
         if (isSeparate) {
-            cNom = parseInt(document.getElementById('colNombre').value);
-            cPat = parseInt(document.getElementById('colPaterno').value);
-            cMat = parseInt(document.getElementById('colMaterno').value);
+            cNom = parseInt(document.getElementById('curpColNombre').value);
+            cPat = parseInt(document.getElementById('curpColPaterno').value);
+            cMat = parseInt(document.getElementById('curpColMaterno').value);
             if (cNom === -1 || cPat === -1) return alert("Selecciona al menos Nombre y Apellido Paterno");
         } else {
-            cFull = parseInt(document.getElementById('colCompleto').value);
+            cFull = parseInt(document.getElementById('curpColCompleto').value);
             if (cFull === -1) return alert("Selecciona la columna de Nombre Completo");
         }
 
-        const newColIdx = currentData[headerRowIdx].length;
-        currentData[headerRowIdx][newColIdx] = "LETRAS_CURP";
+        const newColIdx = curpCurrentData[headerRowIdx].length;
+        curpCurrentData[headerRowIdx][newColIdx] = "LETRAS_CURP";
 
-        for (let i = headerRowIdx + 1; i < currentData.length; i++) {
-            let row = currentData[i];
+        for (let i = headerRowIdx + 1; i < curpCurrentData.length; i++) {
+            let row = curpCurrentData[i];
             while(row.length <= newColIdx) row.push("");
 
             let curpLetters = "";
@@ -853,7 +831,7 @@
             row[newColIdx] = curpLetters;
         }
 
-        const newSheet = XLSX.utils.aoa_to_sheet(currentData);
+        const newSheet = XLSX.utils.aoa_to_sheet(curpCurrentData);
         const newWorkbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Procesado");
         
@@ -863,6 +841,3 @@
 
 </body>
 </html>
-
-
-
